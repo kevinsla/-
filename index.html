@@ -128,7 +128,7 @@
       background-color: #ffffff;
     }
 
-    /* 하단: 누적 일정 피드 영역 (일정이 있는 날만 표시) */
+    /* 하단: 누적 일정 피드 영역 */
     .feed-section {
       flex: 1;
       display: flex;
@@ -286,6 +286,20 @@
 </div>
 
 <script>
+  // 오프라인 캐시(Service Worker) 등록
+  if ('serviceWorker' in navigator) {
+    const swCode = `
+      self.addEventListener('install', e => {
+        e.waitUntil(caches.open('pwa-v1').then(cache => cache.addAll(['./'])));
+      });
+      self.addEventListener('fetch', e => {
+        e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
+      });
+    `;
+    const blob = new Blob([swCode], { type: 'text/javascript' });
+    navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+  }
+
   const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
   let currentDate = new Date();
   let selectedDate = new Date();
@@ -415,7 +429,7 @@
         });
 
         const delBtn = document.createElement('button');
-        delBtn.className, delBtn.className = 'delete-btn';
+        delBtn.className = 'delete-btn';
         delBtn.innerHTML = '&times;';
         delBtn.addEventListener('click', () => {
           schedules[dateKey].splice(index, 1);
