@@ -1,0 +1,15 @@
+{
+  "name": "나만의 일정 위젯",
+  "short_name": "일정위젯",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2693/2693507.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
