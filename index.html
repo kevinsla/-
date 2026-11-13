@@ -7,7 +7,6 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>나만의 일정 위젯</title>
-  <!-- PWA 전체 화면 실행을 위한 manifest 연결 -->
   <link rel="manifest" href="manifest.json">
   <style>
     * {
@@ -202,11 +201,22 @@
       font-size: 13px;
       color: #1f2937;
       word-break: break-all;
+      cursor: pointer;
     }
 
     .todo-item.completed .todo-text {
       text-decoration: line-through;
       color: #9ca3af;
+    }
+
+    .edit-btn {
+      background: none;
+      border: none;
+      color: #9ca3af;
+      font-size: 11px;
+      padding: 2px 6px;
+      cursor: pointer;
+      margin-right: 4px;
     }
 
     .delete-btn {
@@ -288,11 +298,10 @@
 </div>
 
 <script>
-  // 오프라인 캐시(Service Worker) 등록
   if ('serviceWorker' in navigator) {
     const swCode = `
       self.addEventListener('install', e => {
-        e.waitUntil(caches.open('pwa-v1').then(cache => cache.addAll(['./'])));
+        e.waitUntil(caches.open('pwa-v2').then(cache => cache.addAll(['./'])));
       });
       self.addEventListener('fetch', e => {
         e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
@@ -424,10 +433,33 @@
         const span = document.createElement('span');
         span.className = 'todo-text';
         span.textContent = item.text;
+        
+        // 텍스트를 누르면 수정할 수 있도록 기능 추가
         span.addEventListener('click', () => {
-          schedules[dateKey][index].done = !schedules[dateKey][index].done;
-          saveSchedules();
-          renderFeed();
+          const newText = prompt('일정 수정:', item.text);
+          if (newText !== null) {
+            const trimmed = newText.trim();
+            if (trimmed !== '') {
+              schedules[dateKey][index].text = trimmed;
+              saveSchedules();
+              renderFeed();
+            }
+          }
+        });
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'edit-btn';
+        editBtn.textContent = '수정';
+        editBtn.addEventListener('click', () => {
+          const newText = prompt('일정 수정:', item.text);
+          if (newText !== null) {
+            const trimmed = newText.trim();
+            if (trimmed !== '') {
+              schedules[dateKey][index].text = trimmed;
+              saveSchedules();
+              renderFeed();
+            }
+          }
         });
 
         const delBtn = document.createElement('button');
@@ -445,6 +477,7 @@
 
         itemDiv.appendChild(checkbox);
         itemDiv.appendChild(span);
+        itemDiv.appendChild(editBtn);
         itemDiv.appendChild(delBtn);
         groupDiv.appendChild(itemDiv);
       });
