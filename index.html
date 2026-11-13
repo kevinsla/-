@@ -291,7 +291,7 @@
     <div class="feed-list" id="feedList"></div>
     
     <div class="input-area">
-      <input type="text" class="todo-input" id="todoInput" placeholder="선택한 날짜에 새 일정 추가...">
+      <input type="text" class="todo-input" id="todoInput" placeholder="/260711 내용 또는 일반 입력...">
       <button class="add-btn" id="addBtn">추가</button>
     </div>
   </div>
@@ -301,7 +301,7 @@
   if ('serviceWorker' in navigator) {
     const swCode = `
       self.addEventListener('install', e => {
-        e.waitUntil(caches.open('pwa-v2').then(cache => cache.addAll(['./'])));
+        e.waitUntil(caches.open('pwa-v3').then(cache => cache.addAll(['./'])));
       });
       self.addEventListener('fetch', e => {
         e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
@@ -386,7 +386,7 @@
     const d = selectedDate.getDate();
     const dayName = dayNames[selectedDate.getDay()];
     document.getElementById('selectedIndicator').textContent = `[선택: ${y}.${m}.${d} (${dayName})]`;
-    document.getElementById('todoInput').placeholder = `${m}월 ${d}일 새 일정 입력...`;
+    document.getElementById('todoInput').placeholder = `/260711 내용 또는 ${m}월 ${d}일 입력...`;
   }
 
   function renderFeed() {
@@ -396,7 +396,7 @@
     const sortedKeys = Object.keys(schedules).filter(key => schedules[key] && schedules[key].length > 0).sort();
 
     if (sortedKeys.length === 0) {
-      feedList.innerHTML = '<div class="empty-msg">등록된 일정이 없습니다.<br>달력에서 날짜를 선택하고 일정을 추가해 보세요!</div>';
+      feedList.innerHTML = '<div class="empty-msg">등록된 일정이 없습니다.<br>달력에서 날짜를 선택하거나 /260711 형태로 입력해 보세요!</div>';
       return;
     }
 
@@ -433,8 +433,6 @@
         const span = document.createElement('span');
         span.className = 'todo-text';
         span.textContent = item.text;
-        
-        // 텍스트를 누르면 수정할 수 있도록 기능 추가
         span.addEventListener('click', () => {
           const newText = prompt('일정 수정:', item.text);
           if (newText !== null) {
@@ -488,19 +486,38 @@
 
   function addTodo() {
     const input = document.getElementById('todoInput');
-    const text = input.value.trim();
-    if (!text) return;
+    let rawText = input.value.trim();
+    if (!rawText) return;
 
-    const dateKey = formatDateKey(selectedDate);
-    if (!schedules[dateKey]) {
-      schedules[dateKey] = [];
+    let targetDateKey = formatDateKey(selectedDate);
+    let actualText = rawText;
+
+    // 슬래시 날짜 형식 감지: /260711 내용 형태
+    const match = rawText.match(/^\/(\d{6})\s+(.+)$/);
+    if (match) {
+      const yymmdd = match[1];
+      const yy = '20' + yymmdd.slice(0, 2);
+      const mm = yymmdd.slice(2, 4);
+      const dd = yymmdd.slice(4, 6);
+      
+      targetDateKey = `${yy}-${mm}-${dd}`;
+      actualText = match[2];
+
+      // 해당 연월로 달력 화면도 자동 이동
+      currentDate = new Date(parseInt(yy), parseInt(mm) - 1, 1);
+      selectedDate = new Date(parseInt(yy), parseInt(mm) - 1, parseInt(dd));
     }
 
-    schedules[dateKey].push({ text: text, done: false });
+    if (!schedules[targetDateKey]) {
+      schedules[targetDateKey] = [];
+    }
+
+    schedules[targetDateKey].push({ text: actualText, done: false });
     saveSchedules();
     input.value = '';
     renderCalendar();
     renderFeed();
+    updateIndicator();
   }
 
   document.getElementById('addBtn').addEventListener('click', addTodo);
