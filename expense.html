@@ -9,7 +9,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="독립가계부">
   <title>독립 지출 기록기</title>
-  <link rel="manifest" href="./expense-manifest.json">
+  <link rel="manifest" href="./expense-manifest.json?v=2">
+  <link rel="icon" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/7.png">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     html, body { height: 100%; width: 100%; overflow: hidden; background-color: #ffffff; color: #1f2937; }
@@ -137,7 +138,6 @@
   const defaultPokeIds = { '점심': 7, '저녁': 1, '커피': 4, '택시': 25, '쇼핑': 94, '기타': 133 };
   const randomPokePool = [7, 1, 4, 25, 94, 133, 39, 52, 54, 143, 151, 175];
   
-  // 기존 앱과 충돌하지 않도록 독립된 키값 사용
   let customPokeIds = JSON.parse(localStorage.getItem('isolated_expense_pokes')) || defaultPokeIds;
   let customCategories = JSON.parse(localStorage.getItem('isolated_expense_cats')) || ['점심', '저녁', '커피', '택시', '쇼핑', '기타'];
   let currentDate = new Date();
@@ -436,10 +436,10 @@
 
   renderApp();
 
-  // 서비스 워커 등록
+  // 독립 서비스 워커 등록 (스코프를 명시적으로 분리)
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./isolated-sw.js')
+      navigator.serviceWorker.register('./isolated-sw.js', { scope: './' })
         .then(reg => console.log('독립 SW 등록 성공:', reg.scope))
         .catch(err => console.log('독립 SW 등록 실패:', err));
     });
