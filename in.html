@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-title" content="나만의 일정">
   <title>나만의 일정</title>
   <link rel="manifest" href="./manifest.json">
-  <link rel="icon" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png">
+  <link rel="icon" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/143.png">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     html, body { height: 100%; width: 100%; overflow: hidden; background-color: #ffffff; color: #1f2937; }
@@ -64,7 +64,11 @@
     .selector-panel { display: flex; width: 100%; padding: 6px 8px; gap: 8px; background: #fff; }
     
     .date-col { flex: 0 0 84px; display: flex; flex-direction: column; border-right: 1px solid #f0f0f0; padding-right: 6px; height: 100%; }
-    .col-title { font-size: 11px; font-weight: 700; color: #4b5563; margin-bottom: 4px; flex-shrink: 0; }
+    .col-title-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; flex-shrink: 0; }
+    .col-title { font-size: 11px; font-weight: 700; color: #4b5563; }
+    .edit-cat-btn { background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 4px; padding: 1px 5px; font-size: 9px; font-weight: bold; color: #4b5563; cursor: pointer; }
+    .edit-cat-btn.active { background: #dc2626; color: #fff; border-color: #dc2626; }
+
     .vertical-date-scroll { position: relative; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; scrollbar-width: none; }
     .vertical-date-scroll::-webkit-scrollbar { display: none; }
     .date-chip { height: calc((100% - 16px) / 5); min-height: 26px; display: flex; align-items: center; justify-content: center; font-size: 11px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; cursor: pointer; font-weight: 600; flex-shrink: 0; }
@@ -72,9 +76,26 @@
 
     .category-col { flex: 1; display: flex; flex-direction: column; overflow-y: auto; height: 100%; }
     .category-cloud { display: flex; flex-wrap: wrap; gap: 8px 6px; align-content: flex-start; padding-top: 4px; padding-right: 4px; }
+    
     .cat-chip { position: relative; padding: 6px 12px; font-size: 11px; border-radius: 14px; border: 1px solid transparent; cursor: pointer; font-weight: 600; }
     .poke-badge { position: absolute; top: -7px; right: -5px; width: 18px; height: 18px; pointer-events: none; image-rendering: pixelated; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2)); }
     .cat-add-btn { padding: 6px 10px; font-size: 11px; border-radius: 14px; border: 1px dashed #9ca3af; background: #fff; color: #6b7280; cursor: pointer; font-weight: 600; }
+
+    /* 아이폰 스타일 흔들림 애니메이션 */
+    @keyframes wiggle {
+      0% { transform: rotate(-1.5deg); }
+      50% { transform: rotate(1.5deg); }
+      100% { transform: rotate(-1.5deg); }
+    }
+    .cat-chip.wiggle {
+      animation: wiggle 0.25s infinite ease-in-out;
+      border: 2px dashed #dc2626 !important;
+    }
+    .cat-chip.to-delete {
+      opacity: 0.5;
+      background-color: #fee2e2 !important;
+      color: #dc2626 !important;
+    }
 
     .expense-feed-section { flex: 1; overflow-y: auto; padding: 6px 10px; }
     .record-item { display: flex; align-items: center; justify-content: space-between; padding: 3px 0; font-size: 12px; }
@@ -141,11 +162,14 @@
       <div class="expense-middle" id="expenseInputView">
         <div class="selector-panel">
           <div class="date-col">
-            <div class="col-title">📅 날짜</div>
+            <div class="col-title-area"><span class="col-title">📅 날짜</span></div>
             <div class="vertical-date-scroll" id="verticalDateList"></div>
           </div>
           <div class="category-col">
-            <div class="col-title">🏷️ 항목 선택</div>
+            <div class="col-title-area">
+              <span class="col-title">🏷️ 항목 선택</span>
+              <button class="edit-cat-btn" id="editCatBtn" onclick="toggleDeleteMode()">🗑️ 편집</button>
+            </div>
             <div class="category-cloud" id="categoryCloud"></div>
           </div>
         </div>
@@ -188,7 +212,7 @@
   let expenses = JSON.parse(localStorage.getItem('unified_expenses_v2')) || {};
   let monthlyIncomes = JSON.parse(localStorage.getItem('unified_incomes_v2')) || {};
   
-  const categoryColors = { '점심': '#2563eb', '저녁': '#059669', '커피': '#d97706', '택시': '#dc2626', '쇼핑': '#7c3aed', '기타': '#4b5563' };
+  const categoryColors = JSON.parse(localStorage.getItem('unified_cat_colors_v2')) || { '점심': '#2563eb', '저녁': '#059669', '커피': '#d97706', '택시': '#dc2626', '쇼핑': '#7c3aed', '기타': '#4b5563' };
   const defaultPokeIds = { '점심': 7, '저녁': 1, '커피': 4, '택시': 25, '쇼핑': 94, '기타': 133 };
   const randomPokePool = [7, 1, 4, 25, 94, 133, 39, 52, 54, 143, 151, 175];
   const weekNames = ['일', '월', '화', '수', '목', '금', '토'];
@@ -198,12 +222,17 @@
   let selectedCategory = customCategories[0] || '점심';
   let isStatsMode = false;
 
+  // 카테고리 삭제 모드 상태 변수
+  let isDeleteMode = false;
+  let pendingDeleteCats = [];
+
   function formatDateKey(date) {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   }
 
   function switchTab(tab) {
     currentTab = tab;
+    if (isDeleteMode) exitDeleteMode();
     document.querySelectorAll('.switch-tab').forEach((el, idx) => {
       el.classList.toggle('active', (idx === 0 && tab === 'schedule') || (idx === 1 && tab === 'expense'));
     });
@@ -377,7 +406,41 @@
     });
   }
 
-  // ================= 💰 가계부 지출 기능 =================
+  // ================= 💰 가계부 지출 및 카테고리 편집 기능 =================
+  function toggleDeleteMode() {
+    isDeleteMode = !isDeleteMode;
+    const btn = document.getElementById('editCatBtn');
+    if (isDeleteMode) {
+      pendingDeleteCats = [];
+      btn.textContent = '❌ 삭제 완료';
+      btn.classList.add('active');
+    } else {
+      executeDeletions();
+    }
+    renderCategories();
+  }
+
+  function exitDeleteMode() {
+    isDeleteMode = false;
+    pendingDeleteCats = [];
+    const btn = document.getElementById('editCatBtn');
+    if (btn) {
+      btn.textContent = '🗑️ 편집';
+      btn.classList.remove('active');
+    }
+  }
+
+  function executeDeletions() {
+    if (pendingDeleteCats.length > 0) {
+      customCategories = customCategories.filter(c => !pendingDeleteCats.includes(c));
+      localStorage.setItem('unified_cats_v2', JSON.stringify(customCategories));
+      if (!customCategories.includes(selectedCategory)) {
+        selectedCategory = customCategories[0] || '';
+      }
+    }
+    exitDeleteMode();
+  }
+
   function renderVerticalDates() {
     const list = document.getElementById('verticalDateList');
     if (!list) return;
@@ -412,19 +475,34 @@
     const cloud = document.getElementById('categoryCloud');
     if (!cloud) return;
     cloud.innerHTML = '';
+
     customCategories.forEach((cat, idx) => {
       const chip = document.createElement('div');
-      chip.className = 'cat-chip';
+      let chipClass = 'cat-chip';
       const color = categoryColors[cat] || '#2563eb';
-      if (selectedCategory === cat) {
-        chip.style.backgroundColor = color;
-        chip.style.color = '#ffffff';
+
+      if (isDeleteMode) {
+        chipClass += ' wiggle';
+        if (pendingDeleteCats.includes(cat)) {
+          chipClass += ' to-delete';
+        } else {
+          chip.style.backgroundColor = '#ffffff';
+          chip.style.color = color;
+          chip.style.borderColor = color;
+        }
       } else {
-        chip.style.backgroundColor = '#ffffff';
-        chip.style.color = color;
-        chip.style.borderColor = color;
+        if (selectedCategory === cat) {
+          chip.style.backgroundColor = color;
+          chip.style.color = '#ffffff';
+        } else {
+          chip.style.backgroundColor = '#ffffff';
+          chip.style.color = color;
+          chip.style.borderColor = color;
+        }
       }
-      chip.textContent = cat;
+
+      chip.className = chipClass;
+      chip.textContent = isDeleteMode && pendingDeleteCats.includes(cat) ? `✔ ${cat}` : cat;
 
       const pokeId = customPokeIds[cat] || randomPokePool[idx % randomPokePool.length];
       const pokeImg = document.createElement('img');
@@ -433,28 +511,45 @@
       pokeImg.onerror = function() { this.style.display = 'none'; };
       chip.appendChild(pokeImg);
 
-      chip.addEventListener('click', () => { selectedCategory = cat; renderApp(); });
+      chip.addEventListener('click', () => {
+        if (isDeleteMode) {
+          const pIdx = pendingDeleteCats.indexOf(cat);
+          if (pIdx > -1) {
+            pendingDeleteCats.splice(pIdx, 1);
+          } else {
+            pendingDeleteCats.push(cat);
+          }
+          renderCategories();
+        } else {
+          selectedCategory = cat;
+          renderApp();
+        }
+      });
+
       cloud.appendChild(chip);
     });
 
-    const addBtn = document.createElement('button');
-    addBtn.className = 'cat-add-btn';
-    addBtn.textContent = '+ 추가';
-    addBtn.addEventListener('click', () => {
-      const newCat = prompt('새 지출 항목 이름:');
-      if (newCat && newCat.trim() && !customCategories.includes(newCat.trim())) {
-        const trimmed = newCat.trim();
-        customCategories.push(trimmed);
-        const colors = ['#2563eb', '#059669', '#d97706', '#dc2626', '#7c3aed', '#0284c7', '#db2777'];
-        categoryColors[trimmed] = colors[Math.floor(Math.random() * colors.length)];
-        customPokeIds[trimmed] = randomPokePool[Math.floor(Math.random() * randomPokePool.length)];
-        localStorage.setItem('unified_cats_v2', JSON.stringify(customCategories));
-        localStorage.setItem('unified_pokes_v2', JSON.stringify(customPokeIds));
-        selectedCategory = trimmed;
-        renderApp();
-      }
-    });
-    cloud.appendChild(addBtn);
+    if (!isDeleteMode) {
+      const addBtn = document.createElement('button');
+      addBtn.className = 'cat-add-btn';
+      addBtn.textContent = '+ 추가';
+      addBtn.addEventListener('click', () => {
+        const newCat = prompt('새 지출 항목 이름:');
+        if (newCat && newCat.trim() && !customCategories.includes(newCat.trim())) {
+          const trimmed = newCat.trim();
+          customCategories.push(trimmed);
+          const colors = ['#2563eb', '#059669', '#d97706', '#dc2626', '#7c3aed', '#0284c7', '#db2777'];
+          categoryColors[trimmed] = colors[Math.floor(Math.random() * colors.length)];
+          customPokeIds[trimmed] = randomPokePool[Math.floor(Math.random() * randomPokePool.length)];
+          localStorage.setItem('unified_cats_v2', JSON.stringify(customCategories));
+          localStorage.setItem('unified_pokes_v2', JSON.stringify(customPokeIds));
+          localStorage.setItem('unified_cat_colors_v2', JSON.stringify(categoryColors));
+          selectedCategory = trimmed;
+          renderApp();
+        }
+      });
+      cloud.appendChild(addBtn);
+    }
   }
 
   function updatePreview() {
@@ -466,7 +561,7 @@
 
   function addExpense() {
     const input = document.getElementById('priceInput');
-    val = input.value.trim();
+    const val = input.value.trim();
     if (!val) return;
     const dateKey = formatDateKey(selectedDate);
     if (!expenses[dateKey]) expenses[dateKey] = [];
