@@ -52,7 +52,7 @@
     .schedule-list-area { flex: 1; overflow-y: auto; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
     .record-group { margin-bottom: 6px; background: #fff; border-radius: 6px; padding: 6px 10px; border: 1px solid #e5e7eb; }
     .record-group-title { display: flex; align-items: center; justify-content: flex-start; gap: 8px; font-size: 11px; font-weight: 700; color: #2563eb; margin-bottom: 4px; border-bottom: 1px solid #f3f4f6; padding-bottom: 2px; }
-    .group-poke-icon { width: 32px; height: 32px; image-rendering: pixelated; object-fit: contain; }
+    .group-poke-icon { width: 36px; height: 36px; image-rendering: pixelated; object-fit: contain; }
     
     .schedule-item { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; font-size: 12px; border-bottom: 1px solid #f9fafb; }
     .schedule-left { display: flex; align-items: center; gap: 8px; flex: 1; cursor: pointer; }
@@ -192,8 +192,8 @@
   const categoryColors = { '점심': '#2563eb', '저녁': '#059669', '커피': '#d97706', '택시': '#dc2626', '쇼핑': '#7c3aed', '기타': '#4b5563' };
   const defaultPokeIds = { '점심': 7, '저녁': 1, '커피': 4, '택시': 25, '쇼핑': 94, '기타': 133 };
   
-  // 사용 가능한 포켓몬 ID 풀 (전투 애니메이션용)
-  const animPokePool = [25, 7, 1, 4, 94, 133, 143, 150, 151, 6, 9, 3, 39, 52, 65, 92, 130];
+  // 배틀 애니메이션이 완벽히 지원되는 포켓몬 ID 풀
+  const animPokePool = [25, 7, 1, 4, 94, 133, 143, 150, 151, 6, 9, 3, 39, 52, 65, 92, 130, 149, 197, 248];
   const weekNames = ['일', '월', '화', '수', '목', '금', '토'];
   
   let customPokeIds = JSON.parse(localStorage.getItem('unified_pokes_v2')) || defaultPokeIds;
@@ -201,7 +201,7 @@
   let selectedCategory = customCategories[0] || '점심';
   let isStatsMode = false;
 
-  // 날짜 문자열을 기반으로 매일 고유한 랜덤 포켓몬 ID를 생성하는 함수 (날짜별 고정 랜덤)
+  // 날짜 문자열을 시드로 사용하여 매일 다른 포켓몬이 랜덤으로 지정되도록 함
   function getDailyRandomPoke(dateStr) {
     let hash = 0;
     for (let i = 0; i < dateStr.length; i++) {
@@ -331,18 +331,17 @@
       const targetDateObj = new Date(y, parseInt(m) - 1, parseInt(d));
       const dayOfWeek = weekNames[targetDateObj.getDay()];
 
-      // 날짜별 매일 다른 랜덤 포켓몬 스킬 애니메이션 GIF 스프라이트
+      // 날짜별 매일 다른 랜덤 포켓몬 배틀 애니메이션 GIF 스프라이트 (Showdown 전용 공식 주소)
       const pokeId = getDailyRandomPoke(dateKey);
-      const pokeAnimUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${pokeId}.gif`;
+      const pokeAnimUrl = `https://play.pokemonshowdown.com/sprites/ani/${getPokemonSlug(pokeId)}.gif`;
 
       const group = document.createElement('div');
       group.className = 'record-group';
       
-      // 날짜·요일 바로 옆에 스킬 애니메이션 포켓몬 배치
       group.innerHTML = `
         <div class="record-group-title">
           <span>${y}년 ${parseInt(m)}월 ${parseInt(d)}일 (${dayOfWeek})</span>
-          <img class="group-poke-icon" src="${pokeAnimUrl}" alt="poke-anim">
+          <img class="group-poke-icon" src="${pokeAnimUrl}" alt="poke-anim" onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${pokeId}.gif'">
         </div>`;
 
       items.forEach((item, itemIdx) => {
@@ -394,6 +393,17 @@
       });
       list.appendChild(group);
     });
+  }
+
+  // 포켓몬 ID에 맞는 이름 매핑 (Showdown 애니메이션 링크용)
+  function getPokemonSlug(id) {
+    const names = {
+      25: 'pikachu', 7: 'squirtle', 1: 'bulbasaur', 4: 'charmander', 94: 'gengar',
+      133: 'eevee', 143: 'snorlax', 150: 'mewtwo', 151: 'mew', 6: 'charizard',
+      9: 'blastoise', 3: 'venusaur', 39: 'jigglypuff', 52: 'meowth', 65: 'alakazam',
+      92: 'gastly', 130: 'gyarados', 149: 'dragonite', 197: 'umbreon', 248: 'tyranitar'
+    };
+    return names[id] || 'pikachu';
   }
 
   // ================= 💰 가계부 지출 기능 =================
