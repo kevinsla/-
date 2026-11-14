@@ -32,10 +32,10 @@
     .middle-section { flex: 0 0 42%; display: flex; background-color: #fafafa; border-bottom: 2px solid #e5e7eb; overflow: hidden; }
     .selector-panel { display: flex; width: 100%; background-color: #ffffff; padding: 6px 8px; gap: 8px; }
     
-    /* 왼쪽 세로 날짜 선택 (정확히 5개 높이 맞춤) */
+    /* 왼쪽 세로 날짜 선택 (정확히 5개 높이 맞춤 + 기준점 설정) */
     .date-col { flex: 0 0 84px; display: flex; flex-direction: column; border-right: 1px solid #f0f0f0; padding-right: 6px; height: 100%; }
     .col-title { font-size: 11px; font-weight: 700; color: #4b5563; margin-bottom: 4px; flex-shrink: 0; }
-    .vertical-date-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; scrollbar-width: none; }
+    .vertical-date-scroll { position: relative; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; scrollbar-width: none; }
     .vertical-date-scroll::-webkit-scrollbar { display: none; }
     .date-chip { height: calc((100% - 16px) / 5); min-height: 26px; display: flex; align-items: center; justify-content: center; font-size: 11px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; cursor: pointer; font-weight: 600; flex-shrink: 0; }
     .date-chip.active { background-color: #2563eb; color: #ffffff; border-color: #2563eb; }
@@ -216,7 +216,6 @@
     const selectedKey = formatDateKey(selectedDate);
     let activeChip = null;
 
-    // 앞뒤로 15일씩 총 31일치 생성
     for (let i = -15; i <= 15; i++) {
       const target = new Date(selectedDate);
       target.setDate(selectedDate.getDate() + i);
@@ -233,11 +232,11 @@
       if (isActive) activeChip = chip;
     }
 
-    // 선택된 날짜가 리스트의 정확히 정가운데에 오도록 스크롤 위치 강제 지정
+    // 선택된 날짜가 리스트의 정확히 정가운데에 오도록 스크롤 위치 강제 조정 (기준점 추가 완료)
     if (activeChip) {
       setTimeout(() => {
         list.scrollTop = activeChip.offsetTop - (list.clientHeight / 2) + (activeChip.offsetHeight / 2);
-      }, 0);
+      }, 50);
     }
   }
 
