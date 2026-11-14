@@ -43,15 +43,18 @@
     .view-panel { display: none; flex-direction: column; flex: 1; overflow: hidden; background-color: #fafafa; }
     .view-panel.active { display: flex; }
 
-    /* 1. 일정 관리 영역 스타일 (누적 스크롤 피드 형태) */
+    /* 1. 일정 관리 영역 스타일 */
     .schedule-input-area { display: flex; padding: 8px 10px; background: #fff; gap: 6px; border-bottom: 2px solid #e5e7eb; align-items: center; flex-shrink: 0; }
     .text-input { flex: 1; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 12px; outline: none; }
     .action-btn { background-color: #2563eb; color: white; border: none; border-radius: 6px; padding: 8px 12px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; height: 36px; }
     .date-insert-btn { background-color: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db; border-radius: 6px; padding: 8px 10px; font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap; height: 36px; }
     
     .schedule-list-area { flex: 1; overflow-y: auto; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
-    .record-group { margin-bottom: 6px; background: #fff; border-radius: 6px; padding: 6px 10px; border: 1px solid #f0f0f0; }
-    .record-group-title { font-size: 11px; font-weight: 700; color: #2563eb; margin-bottom: 4px; border-bottom: 1px solid #f3f4f6; padding-bottom: 2px; }
+    .record-group { margin-bottom: 6px; background: #fff; border-radius: 6px; padding: 6px 10px; border: 1px solid #e5e7eb; }
+    .record-group-title { display: flex; align-items: center; justify-content: space-between; font-size: 11px; font-weight: 700; color: #2563eb; margin-bottom: 4px; border-bottom: 1px solid #f3f4f6; padding-bottom: 2px; }
+    .group-title-left { display: flex; align-items: center; gap: 6px; }
+    .group-poke-icon { width: 22px; height: 22px; image-rendering: pixelated; }
+    
     .schedule-item { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; font-size: 12px; border-bottom: 1px solid #f9fafb; }
     .schedule-left { display: flex; align-items: center; gap: 8px; flex: 1; cursor: pointer; }
     .schedule-text { flex: 1; word-break: break-all; }
@@ -124,10 +127,10 @@
   <!-- 메인 컨텐츠 영역 -->
   <div class="content-section" style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
     
-    <!-- 1. 일정 관리 뷰 (누적 스크롤 리스트) -->
+    <!-- 1. 일정 관리 뷰 -->
     <div id="scheduleView" class="view-panel active">
       <div class="schedule-input-area">
-        <button class="date-insert-btn" onclick="insertDatePrefix()">📅 날짜삽입</button>
+        <button class="date-insert-btn" onclick="insertDatePrefix()">날짜삽입</button>
         <input type="text" id="scheduleInput" class="text-input" placeholder="선택한 날짜의 일정 입력..." onkeypress="if(event.key==='Enter') addSchedule()">
         <button class="action-btn" onclick="addSchedule()">일정 추가</button>
       </div>
@@ -272,7 +275,7 @@
     }
   }
 
-  // ================= 📅 일정 관리 기능 (누적 스크롤 리스트 + 수정 기능 복구) =================
+  // ================= 📅 일정 관리 기능 =================
   function insertDatePrefix() {
     const input = document.getElementById('scheduleInput');
     const yy = String(selectedDate.getFullYear()).slice(-2);
@@ -284,8 +287,13 @@
 
   function addSchedule() {
     const input = document.getElementById('scheduleInput');
-    const val = input.value.trim();
+    let val = input.value.trim();
     if (!val) return;
+
+    // /날짜 패턴(예: /261114 등)이 포함되어 있으면 내용에서 자동으로 제거
+    val = val.replace(/^\/\d{6}\s*/, '').trim();
+    if (!val) return;
+
     const key = formatDateKey(selectedDate);
     if (!schedules[key]) schedules[key] = [];
     schedules[key].push({ text: val, completed: false });
@@ -298,7 +306,6 @@
     const list = document.getElementById('scheduleList');
     list.innerHTML = '';
     
-    // 등록된 모든 날짜 키를 정렬하여 누적 표시 (스크롤 지원)
     const sortedKeys = Object.keys(schedules).filter(k => schedules[k]?.length > 0).sort();
 
     if (sortedKeys.length === 0) {
@@ -306,14 +313,26 @@
       return;
     }
 
-    sortedKeys.forEach(dateKey => {
+    sortedKeys.forEach((dateKey, index) => {
       const items = schedules[dateKey];
       const [y, m, d] = dateKey.split('-');
+      
+      // 날짜별 고유 포켓몬 아이콘 매칭 (랜덤 풀 또는 날짜 기반 인덱스)
+      const pokeId = randomPokePool[index % randomPokePool.length];
+
       const group = document.createElement('div');
       group.className = 'record-group';
-      group.innerHTML = `<div class="record-group-title">${y}년 ${parseInt(m)}월 ${parseInt(d)}일</div>`;
+      
+      // 그룹 타이틀 옆에 애니메이션 포켓몬 스프라이트 추가
+      group.innerHTML = `
+        <div class="record-group-title">
+          <div class="group-title-left">
+            <span>${y}년 ${parseInt(m)}월 ${parseInt(d)}일</span>
+          </div>
+          <img class="group-poke-icon" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokeId}.png" alt="poke">
+        </div>`;
 
-      items.forEach((item, index) => {
+      items.forEach((item, itemIdx) => {
         const div = document.createElement('div');
         div.className = 'schedule-item';
         
@@ -325,7 +344,7 @@
         checkbox.checked = item.completed;
         checkbox.style.cursor = 'pointer';
         checkbox.addEventListener('change', () => {
-          schedules[dateKey][index].completed = checkbox.checked;
+          schedules[dateKey][itemIdx].completed = checkbox.checked;
           localStorage.setItem('unified_schedules_v2', JSON.stringify(schedules));
           renderSchedules();
         });
@@ -334,11 +353,11 @@
         span.className = 'schedule-text' + (item.completed ? ' completed' : '');
         span.textContent = item.text;
         
-        // 일정 텍스트 터치 시 수정 기능 복구
+        // 일정 텍스트 터치 시 수정 기능
         span.addEventListener('click', () => {
           const nt = prompt('일정 수정:', item.text);
           if (nt !== null && nt.trim()) {
-            schedules[dateKey][index].text = nt.trim();
+            schedules[dateKey][itemIdx].text = nt.trim();
             localStorage.setItem('unified_schedules_v2', JSON.stringify(schedules));
             renderSchedules();
           }
@@ -351,7 +370,7 @@
         del.className = 'delete-btn';
         del.innerHTML = '&times;';
         del.addEventListener('click', () => {
-          schedules[dateKey].splice(index, 1);
+          schedules[dateKey].splice(itemIdx, 1);
           if (schedules[dateKey].length === 0) delete schedules[dateKey];
           localStorage.setItem('unified_schedules_v2', JSON.stringify(schedules));
           renderApp();
@@ -480,7 +499,7 @@
       const [y, m, d] = dateKey.split('-');
       const group = document.createElement('div');
       group.className = 'record-group';
-      group.innerHTML = `<div class="record-group-title">${y}년 ${parseInt(m)}월 ${parseInt(d)}일</div>`;
+      group.innerHTML = `<div class="record-group-title"><div class="group-title-left"><span>${y}년 ${parseInt(m)}월 ${parseInt(d)}일</span></div></div>`;
 
       items.forEach((item, index) => {
         const itemDiv = document.createElement('div');
