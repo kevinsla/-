@@ -3,329 +3,132 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
+  <meta name="application-name" content="일정 및 가계부">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>나만의 일정 위젯</title>
-  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-title" content="일정 및 가계부">
+  <title>일정 및 가계부 통합 앱</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png">
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    html, body { height: 100%; width: 100%; overflow: hidden; background-color: #ffffff; color: #1f2937; }
+    .app-container { display: flex; flex-direction: column; height: 100dvh; max-width: 800px; margin: 0 auto; background-color: #ffffff; }
 
-    html, body {
-      height: 100%;
-      width: 100%;
-      overflow: hidden;
-      background-color: #ffffff;
-      color: #1f2937;
-    }
+    /* 상단 네비게이션 탭 (일정 vs 가계부 전환) */
+    .app-switcher { display: flex; background: #2563eb; padding: 6px; gap: 6px; }
+    .switch-tab { flex: 1; background: rgba(255,255,255,0.2); border: none; border-radius: 4px; padding: 6px; color: #fff; font-weight: bold; font-size: 12px; cursor: pointer; text-align: center; }
+    .switch-tab.active { background: #fff; color: #2563eb; }
 
-    .app-container {
-      display: flex;
-      flex-direction: column;
-      height: 100dvh;
-      max-width: 800px;
-      margin: 0 auto;
-      background-color: #ffffff;
-    }
-
-    /* 상단: 위젯형 달력 영역 */
-    .top-section {
-      display: flex;
-      flex-direction: column;
-      border-bottom: 2px solid #e5e7eb;
-      background-color: #ffffff;
-      padding: 8px 12px 6px;
-    }
-
-    .calendar-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 4px;
-    }
-
-    .calendar-header h2 {
-      font-size: 14px;
-      font-weight: 700;
-      color: #111827;
-    }
-
-    .nav-btn {
-      background: #f3f4f6;
-      border: none;
-      border-radius: 4px;
-      padding: 2px 6px;
-      font-size: 12px;
-      font-weight: bold;
-      color: #374151;
-      cursor: pointer;
-    }
-
-    .weekdays {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      text-align: center;
-      font-size: 10px;
-      font-weight: 600;
-      color: #6b7280;
-      margin-bottom: 2px;
-    }
-
+    /* 상단: 달력 영역 */
+    .top-calendar { flex: 0 0 25%; display: flex; flex-direction: column; justify-content: center; border-bottom: 2px solid #e5e7eb; background: #fff; padding: 4px 10px; }
+    .calendar-header { position: relative; display: flex; justify-content: space-between; align-items: center; height: 24px; margin-bottom: 2px; }
+    .calendar-header h2 { position: absolute; left: 50%; transform: translateX(-50%); font-size: 13px; font-weight: 700; white-space: nowrap; pointer-events: none; }
+    .header-left, .header-right { display: flex; gap: 4px; align-items: center; z-index: 1; }
+    .nav-btn { background: #f3f4f6; border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: bold; cursor: pointer; }
+    .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 9px; font-weight: 600; color: #6b7280; margin-bottom: 1px; }
     .weekdays div:first-child { color: #ef4444; }
     .weekdays div:last-child { color: #3b82f6; }
-
-    .days-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 2px;
-    }
-
-    .day-cell {
-      aspect-ratio: 1.5;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      border-radius: 4px;
-      cursor: pointer;
-      background-color: #f9fafb;
-    }
-
-    .day-cell.empty {
-      background: transparent;
-      cursor: default;
-    }
-
+    .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
+    .day-cell { aspect-ratio: 2.6; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; border-radius: 3px; cursor: pointer; background-color: #f9fafb; position: relative; }
     .day-cell.sun { color: #ef4444; }
     .day-cell.sat { color: #3b82f6; }
+    .day-cell.today { font-weight: 800; background-color: #eff6ff; color: #2563eb; }
+    .day-cell.selected { background-color: #2563eb; color: #ffffff !important; font-weight: 700; }
+    .dot { width: 4px; height: 4px; background-color: #10b981; border-radius: 50%; position: absolute; bottom: 2px; }
 
-    .day-cell.today {
-      font-weight: 800;
-      background-color: #eff6ff;
-      color: #2563eb;
-    }
+    /* 컨텐츠 영역 */
+    .content-section { flex: 1; background-color: #fafafa; display: flex; flex-direction: column; overflow: hidden; padding: 8px; }
+    .view-panel { display: none; flex-direction: column; height: 100%; overflow-y: auto; }
+    .view-panel.active { display: flex; }
 
-    .day-cell.selected {
-      background-color: #2563eb;
-      color: #ffffff !important;
-      font-weight: 700;
-    }
-
-    .dot {
-      width: 3px;
-      height: 3px;
-      border-radius: 50%;
-      background-color: #2563eb;
-      margin-top: 1px;
-    }
-
-    .day-cell.selected .dot {
-      background-color: #ffffff;
-    }
-
-    /* 하단: 누적 일정 피드 영역 */
-    .feed-section {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      background-color: #fafafa;
-      overflow: hidden;
-    }
-
-    .feed-header {
-      padding: 8px 12px;
-      background-color: #ffffff;
-      border-bottom: 1px solid #e5e7eb;
-      font-size: 13px;
-      font-weight: 700;
-      color: #111827;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .feed-list {
-      flex: 1;
-      overflow-y: auto;
-      padding: 8px 12px;
-    }
-
-    .empty-msg {
-      text-align: center;
-      color: #9ca3af;
-      font-size: 12px;
-      margin-top: 20px;
-    }
-
-    .date-group {
-      margin-bottom: 8px;
-      background: #ffffff;
-      border-radius: 6px;
-      padding: 8px;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
-      border: 1px solid #f0f0f0;
-    }
-
-    .date-group-title {
-      font-size: 12px;
-      font-weight: 700;
-      color: #2563eb;
-      margin-bottom: 4px;
-      border-bottom: 1px solid #f3f4f6;
-      padding-bottom: 2px;
-    }
-
-    .todo-item {
-      display: flex;
-      align-items: center;
-      padding: 4px 0;
-    }
-
-    .todo-checkbox {
-      width: 16px;
-      height: 16px;
-      margin-right: 6px;
-      accent-color: #2563eb;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-
-    .todo-text {
-      flex: 1;
-      font-size: 13px;
-      color: #1f2937;
-      word-break: break-all;
-      cursor: pointer;
-    }
-
-    .todo-item.completed .todo-text {
-      text-decoration: line-through;
-      color: #9ca3af;
-    }
-
-    .edit-btn {
-      background: none;
-      border: none;
-      color: #9ca3af;
-      font-size: 11px;
-      padding: 2px 6px;
-      cursor: pointer;
-      margin-right: 4px;
-    }
-
-    .delete-btn {
-      background: none;
-      border: none;
-      color: #d1d5db;
-      font-size: 14px;
-      padding: 0 4px;
-      cursor: pointer;
-    }
-
-    .delete-btn:active {
-      color: #ef4444;
-    }
-
-    /* 일정 입력창 */
-    .input-area {
-      display: flex;
-      padding: 8px 12px;
-      background-color: #ffffff;
-      border-top: 1px solid #e5e7eb;
-      gap: 6px;
-    }
-
-    .todo-input {
-      flex: 1;
-      padding: 8px 10px;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-      font-size: 13px;
-      outline: none;
-    }
-
-    .todo-input:focus {
-      border-color: #2563eb;
-    }
-
-    .add-btn {
-      background-color: #2563eb;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 0 12px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-    }
+    /* 공통 입력/리스트 스타일 */
+    .input-box { display: flex; gap: 6px; margin-bottom: 8px; }
+    .text-input, .price-input { flex: 1; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 12px; }
+    .action-btn { background-color: #2563eb; color: white; border: none; border-radius: 6px; padding: 8px 12px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    
+    .list-area { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+    .card-item { background: #fff; padding: 8px 10px; border-radius: 6px; border: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+    .delete-btn { background: none; border: none; color: #d1d5db; font-size: 14px; cursor: pointer; }
   </style>
 </head>
 <body>
 
 <div class="app-container">
-  <!-- 상단: 위젯형 달력 -->
-  <div class="top-section">
+  <!-- 상단 탭 전환 -->
+  <div class="app-switcher">
+    <button class="switch-tab active" onclick="switchTab('schedule')">📅 일정 관리</button>
+    <button class="switch-tab" onclick="switchTab('expense')">💰 가계부 지출</button>
+  </div>
+
+  <!-- 달력 영역 -->
+  <div class="top-calendar">
     <div class="calendar-header">
-      <button class="nav-btn" id="prevMonth">&lt;</button>
+      <div class="header-left"><button class="nav-btn" onclick="moveMonth(-1)">&lt;</button></div>
       <h2 id="monthYearText"></h2>
-      <button class="nav-btn" id="nextMonth">&gt;</button>
+      <div class="header-right"><button class="nav-btn" onclick="moveMonth(1)">&gt;</button></div>
     </div>
-    <div class="weekdays">
-      <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
-    </div>
+    <div class="weekdays"><div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div></div>
     <div class="days-grid" id="daysGrid"></div>
   </div>
 
-  <!-- 하단: 일정이 있는 날만 누적 표시되는 피드 -->
-  <div class="feed-section">
-    <div class="feed-header">
-      <span id="feedTitle">등록된 전체 일정 (누적)</span>
-      <span id="selectedIndicator" style="font-size: 11px; color: #2563eb; font-weight: normal;">오늘 선택됨</span>
-    </div>
-    <div class="feed-list" id="feedList"></div>
+  <!-- 메인 컨텐츠 영역 -->
+  <div class="content-section">
     
-    <div class="input-area">
-      <input type="text" class="todo-input" id="todoInput" placeholder="/260711 내용 또는 일반 입력...">
-      <button class="add-btn" id="addBtn">추가</button>
+    <!-- 1. 일정 뷰 -->
+    <div id="scheduleView" class="view-panel active">
+      <div class="input-box">
+        <input type="text" id="scheduleInput" class="text-input" placeholder="선택한 날짜의 일정 입력...">
+        <button class="action-btn" onclick="addSchedule()">일정 추가</button>
+      </div>
+      <div class="list-area" id="scheduleList"></div>
     </div>
+
+    <!-- 2. 가계부 뷰 -->
+    <div id="expenseView" class="view-panel">
+      <div class="input-box">
+        <select id="expenseCategory" class="text-input" style="flex: 0 0 90px;">
+          <option value="점심">점심</option>
+          <option value="저녁">저녁</option>
+          <option value="커피">커피</option>
+          <option value="택시">택시</option>
+          <option value="쇼핑">쇼핑</option>
+          <option value="기타">기타</option>
+        </select>
+        <input type="number" id="expensePrice" class="price-input" placeholder="금액 입력">
+        <button class="action-btn" onclick="addExpense()">지출 추가</button>
+      </div>
+      <div class="list-area" id="expenseList"></div>
+    </div>
+
   </div>
 </div>
 
 <script>
-  if ('serviceWorker' in navigator) {
-    const swCode = `
-      self.addEventListener('install', e => {
-        e.waitUntil(caches.open('pwa-v3').then(cache => cache.addAll(['./'])));
-      });
-      self.addEventListener('fetch', e => {
-        e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
-      });
-    `;
-    const blob = new Blob([swCode], { type: 'text/javascript' });
-    navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
-  }
-
-  const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
   let currentDate = new Date();
   let selectedDate = new Date();
+  let currentTab = 'schedule';
 
-  let schedules = JSON.parse(localStorage.getItem('my_schedule_app_v1')) || {};
-
-  function saveSchedules() {
-    localStorage.setItem('my_schedule_app_v1', JSON.stringify(schedules));
-  }
+  let schedules = JSON.parse(localStorage.getItem('unified_schedules')) || {};
+  let expenses = JSON.parse(localStorage.getItem('unified_expenses')) || {};
 
   function formatDateKey(date) {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  }
+
+  function switchTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.switch-tab').forEach((el, idx) => {
+      el.classList.toggle('active', (idx === 0 && tab === 'schedule') || (idx === 1 && tab === 'expense'));
+    });
+    document.getElementById('scheduleView').classList.toggle('active', tab === 'schedule');
+    document.getElementById('expenseView').classList.toggle('active', tab === 'expense');
+  }
+
+  function moveMonth(diff) {
+    currentDate.setMonth(currentDate.getMonth() + diff);
+    renderCalendar();
   }
 
   function renderCalendar() {
@@ -337,207 +140,114 @@
     const lastDate = new Date(year, month + 1, 0).getDate();
     const todayKey = formatDateKey(new Date());
     const selectedKey = formatDateKey(selectedDate);
-
-    const daysGrid = document.getElementById('daysGrid');
-    daysGrid.innerHTML = '';
+    const grid = document.getElementById('daysGrid');
+    grid.innerHTML = '';
 
     for (let i = 0; i < firstDay; i++) {
-      const emptyCell = document.createElement('div');
-      emptyCell.className = 'day-cell empty';
-      daysGrid.appendChild(emptyCell);
+      grid.appendChild(document.createElement('div'));
     }
 
     for (let d = 1; d <= lastDate; d++) {
       const cellDate = new Date(year, month, d);
       const dateKey = formatDateKey(cellDate);
-      const dayOfWeek = cellDate.getDay();
-
       const cell = document.createElement('div');
       cell.className = 'day-cell';
-      if (dayOfWeek === 0) cell.classList.add('sun');
-      if (dayOfWeek === 6) cell.classList.add('sat');
+      if (cellDate.getDay() === 0) cell.classList.add('sun');
+      if (cellDate.getDay() === 6) cell.classList.add('sat');
       if (dateKey === todayKey) cell.classList.add('today');
       if (dateKey === selectedKey) cell.classList.add('selected');
 
-      const numSpan = document.createElement('span');
-      numSpan.textContent = d;
-      cell.appendChild(numSpan);
-
-      if (schedules[dateKey] && schedules[dateKey].length > 0) {
+      cell.innerHTML = `<span>${d}</span>`;
+      
+      // 일정이 있거나 지출이 있으면 초록색 점 표시
+      if ((schedules[dateKey] && schedules[dateKey].length > 0) || (expenses[dateKey] && expenses[dateKey].length > 0)) {
         const dot = document.createElement('div');
         dot.className = 'dot';
         cell.appendChild(dot);
       }
 
       cell.addEventListener('click', () => {
-        selectedDate = cellDate;
+        selectedDate = new Date(cellDate);
         renderCalendar();
-        renderFeed();
-        updateIndicator();
+        renderLists();
       });
-
-      daysGrid.appendChild(cell);
+      grid.appendChild(cell);
     }
   }
 
-  function updateIndicator() {
-    const y = selectedDate.getFullYear();
-    const m = selectedDate.getMonth() + 1;
-    const d = selectedDate.getDate();
-    const dayName = dayNames[selectedDate.getDay()];
-    document.getElementById('selectedIndicator').textContent = `[선택: ${y}.${m}.${d} (${dayName})]`;
-    document.getElementById('todoInput').placeholder = `/260711 내용 또는 ${m}월 ${d}일 입력...`;
-  }
-
-  function renderFeed() {
-    const feedList = document.getElementById('feedList');
-    feedList.innerHTML = '';
-
-    const sortedKeys = Object.keys(schedules).filter(key => schedules[key] && schedules[key].length > 0).sort();
-
-    if (sortedKeys.length === 0) {
-      feedList.innerHTML = '<div class="empty-msg">등록된 일정이 없습니다.<br>달력에서 날짜를 선택하거나 /260711 형태로 입력해 보세요!</div>';
-      return;
-    }
-
-    sortedKeys.forEach(dateKey => {
-      const items = schedules[dateKey];
-      if (items.length === 0) return;
-
-      const [y, m, d] = dateKey.split('-');
-      const targetDate = new Date(y, m - 1, d);
-      const dayName = dayNames[targetDate.getDay()];
-
-      const groupDiv = document.createElement('div');
-      groupDiv.className = 'date-group';
-
-      const titleDiv = document.createElement('div');
-      titleDiv.className = 'date-group-title';
-      titleDiv.textContent = `${y}년 ${parseInt(m)}월 ${parseInt(d)}일 (${dayName})`;
-      groupDiv.appendChild(titleDiv);
-
-      items.forEach((item, index) => {
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'todo-item' + (item.done ? ' completed' : '');
-
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.className = 'todo-checkbox';
-        checkbox.checked = item.done;
-        checkbox.addEventListener('change', () => {
-          schedules[dateKey][index].done = checkbox.checked;
-          saveSchedules();
-          renderFeed();
-        });
-
-        const span = document.createElement('span');
-        span.className = 'todo-text';
-        span.textContent = item.text;
-        span.addEventListener('click', () => {
-          const newText = prompt('일정 수정:', item.text);
-          if (newText !== null) {
-            const trimmed = newText.trim();
-            if (trimmed !== '') {
-              schedules[dateKey][index].text = trimmed;
-              saveSchedules();
-              renderFeed();
-            }
-          }
-        });
-
-        const editBtn = document.createElement('button');
-        editBtn.className = 'edit-btn';
-        editBtn.textContent = '수정';
-        editBtn.addEventListener('click', () => {
-          const newText = prompt('일정 수정:', item.text);
-          if (newText !== null) {
-            const trimmed = newText.trim();
-            if (trimmed !== '') {
-              schedules[dateKey][index].text = trimmed;
-              saveSchedules();
-              renderFeed();
-            }
-          }
-        });
-
-        const delBtn = document.createElement('button');
-        delBtn.className = 'delete-btn';
-        delBtn.innerHTML = '&times;';
-        delBtn.addEventListener('click', () => {
-          schedules[dateKey].splice(index, 1);
-          if (schedules[dateKey].length === 0) {
-            delete schedules[dateKey];
-          }
-          saveSchedules();
-          renderCalendar();
-          renderFeed();
-        });
-
-        itemDiv.appendChild(checkbox);
-        itemDiv.appendChild(span);
-        itemDiv.appendChild(editBtn);
-        itemDiv.appendChild(delBtn);
-        groupDiv.appendChild(itemDiv);
-      });
-
-      feedList.appendChild(groupDiv);
-    });
-  }
-
-  function addTodo() {
-    const input = document.getElementById('todoInput');
-    let rawText = input.value.trim();
-    if (!rawText) return;
-
-    let targetDateKey = formatDateKey(selectedDate);
-    let actualText = rawText;
-
-    // 슬래시 날짜 형식 감지: /260711 내용 형태
-    const match = rawText.match(/^\/(\d{6})\s+(.+)$/);
-    if (match) {
-      const yymmdd = match[1];
-      const yy = '20' + yymmdd.slice(0, 2);
-      const mm = yymmdd.slice(2, 4);
-      const dd = yymmdd.slice(4, 6);
-      
-      targetDateKey = `${yy}-${mm}-${dd}`;
-      actualText = match[2];
-
-      // 해당 연월로 달력 화면도 자동 이동
-      currentDate = new Date(parseInt(yy), parseInt(mm) - 1, 1);
-      selectedDate = new Date(parseInt(yy), parseInt(mm) - 1, parseInt(dd));
-    }
-
-    if (!schedules[targetDateKey]) {
-      schedules[targetDateKey] = [];
-    }
-
-    schedules[targetDateKey].push({ text: actualText, done: false });
-    saveSchedules();
+  function addSchedule() {
+    const input = document.getElementById('scheduleInput');
+    const val = input.value.trim();
+    if (!val) return;
+    const key = formatDateKey(selectedDate);
+    if (!schedules[key]) schedules[key] = [];
+    schedules[key].push(val);
+    localStorage.setItem('unified_schedules', JSON.stringify(schedules));
     input.value = '';
     renderCalendar();
-    renderFeed();
-    updateIndicator();
+    renderLists();
   }
 
-  document.getElementById('addBtn').addEventListener('click', addTodo);
-  document.getElementById('todoInput').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') addTodo();
-  });
-
-  document.getElementById('prevMonth').addEventListener('click', () => {
-    currentDate.setMonth(currentDate.getMonth() - 1);
+  function addExpense() {
+    const cat = document.getElementById('expenseCategory').value;
+    const priceInput = document.getElementById('expensePrice');
+    const val = parseInt(priceInput.value);
+    if (isNaN(val)) return;
+    const key = formatDateKey(selectedDate);
+    if (!expenses[key]) expenses[key] = [];
+    expenses[key].push({ category: cat, price: val });
+    localStorage.setItem('unified_expenses', JSON.stringify(expenses));
+    priceInput.value = '';
     renderCalendar();
-  });
+    renderLists();
+  }
 
-  document.getElementById('nextMonth').addEventListener('click', () => {
-    currentDate.setMonth(currentDate.getMonth() + 1);
+  function renderLists() {
+    const key = formatDateKey(selectedDate);
+    
+    // 일정 리스트 렌더링
+    const schList = document.getElementById('scheduleList');
+    schList.innerHTML = '';
+    const schs = schedules[key] || [];
+    if (schs.length === 0) {
+      schList.innerHTML = '<div style="color:#9ca3af; font-size:11px; text-align:center; margin-top:10px;">등록된 일정이 없습니다.</div>';
+    } else {
+      schs.forEach((item, idx) => {
+        schList.innerHTML += `<div class="card-item"><span>📌 ${item}</span><button class="delete-btn" onclick="delSchedule('${key}', ${idx})">&times;</button></div>`;
+      });
+    }
+
+    // 가계부 리스트 렌더링
+    const expList = document.getElementById('expenseList');
+    expList.innerHTML = '';
+    const exps = expenses[key] || [];
+    if (exps.length === 0) {
+      expList.innerHTML = '<div style="color:#9ca3af; font-size:11px; text-align:center; margin-top:10px;">기록된 지출이 없습니다.</div>';
+    } else {
+      exps.forEach((item, idx) => {
+        expList.innerHTML += `<div class="card-item"><span>[${item.category}] ${item.price.toLocaleString()}원</span><button class="delete-btn" onclick="delExpense('${key}', ${idx})">&times;</button></div>`;
+      });
+    }
+  }
+
+  function delSchedule(key, idx) {
+    schedules[key].splice(idx, 1);
+    if (schedules[key].length === 0) delete schedules[key];
+    localStorage.setItem('unified_schedules', JSON.stringify(schedules));
     renderCalendar();
-  });
+    renderLists();
+  }
+
+  function delExpense(key, idx) {
+    expenses[key].splice(idx, 1);
+    if (expenses[key].length === 0) delete expenses[key];
+    localStorage.setItem('unified_expenses', JSON.stringify(expenses));
+    renderCalendar();
+    renderLists();
+  }
 
   renderCalendar();
-  renderFeed();
-  updateIndicator();
+  renderLists();
 </script>
 
 </body>
