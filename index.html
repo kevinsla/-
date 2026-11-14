@@ -43,20 +43,22 @@
     .view-panel { display: none; flex-direction: column; flex: 1; overflow: hidden; background-color: #fafafa; }
     .view-panel.active { display: flex; }
 
-    /* 1. 일정 관리 영역 스타일 */
-    .schedule-input-area { display: flex; padding: 8px 10px; background: #fff; gap: 6px; border-bottom: 2px solid #e5e7eb; align-items: center; }
+    /* 1. 일정 관리 영역 스타일 (누적 스크롤 피드 형태) */
+    .schedule-input-area { display: flex; padding: 8px 10px; background: #fff; gap: 6px; border-bottom: 2px solid #e5e7eb; align-items: center; flex-shrink: 0; }
     .text-input { flex: 1; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 12px; outline: none; }
     .action-btn { background-color: #2563eb; color: white; border: none; border-radius: 6px; padding: 8px 12px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; height: 36px; }
     .date-insert-btn { background-color: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db; border-radius: 6px; padding: 8px 10px; font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap; height: 36px; }
     
     .schedule-list-area { flex: 1; overflow-y: auto; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
-    .schedule-item { background: #fff; padding: 8px 10px; border-radius: 6px; border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between; font-size: 12px; }
+    .record-group { margin-bottom: 6px; background: #fff; border-radius: 6px; padding: 6px 10px; border: 1px solid #f0f0f0; }
+    .record-group-title { font-size: 11px; font-weight: 700; color: #2563eb; margin-bottom: 4px; border-bottom: 1px solid #f3f4f6; padding-bottom: 2px; }
+    .schedule-item { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; font-size: 12px; border-bottom: 1px solid #f9fafb; }
     .schedule-left { display: flex; align-items: center; gap: 8px; flex: 1; cursor: pointer; }
-    .schedule-text { flex: 1; }
+    .schedule-text { flex: 1; word-break: break-all; }
     .schedule-text.completed { text-decoration: line-through; color: #9ca3af; }
     .delete-btn { background: none; border: none; color: #d1d5db; font-size: 14px; cursor: pointer; padding: 0 4px; }
 
-    /* 2. 가계부 영역 스타일 (세로 날짜 바 + 포켓몬 클라우드 + 피드 + 통계) */
+    /* 2. 가계부 영역 스타일 */
     .expense-middle { flex: 0 0 45%; display: flex; background-color: #fafafa; border-bottom: 2px solid #e5e7eb; overflow: hidden; background: #fff; }
     .selector-panel { display: flex; width: 100%; padding: 6px 8px; gap: 8px; background: #fff; }
     
@@ -73,10 +75,7 @@
     .poke-badge { position: absolute; top: -7px; right: -5px; width: 18px; height: 18px; pointer-events: none; image-rendering: pixelated; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2)); }
     .cat-add-btn { padding: 6px 10px; font-size: 11px; border-radius: 14px; border: 1px dashed #9ca3af; background: #fff; color: #6b7280; cursor: pointer; font-weight: 600; }
 
-    /* 가계부 피드 섹션 */
     .expense-feed-section { flex: 1; overflow-y: auto; padding: 6px 10px; }
-    .record-group { margin-bottom: 6px; background: #fff; border-radius: 6px; padding: 6px 10px; border: 1px solid #f0f0f0; }
-    .record-group-title { font-size: 11px; font-weight: 700; color: #2563eb; margin-bottom: 2px; border-bottom: 1px solid #f3f4f6; padding-bottom: 2px; }
     .record-item { display: flex; align-items: center; justify-content: space-between; padding: 3px 0; font-size: 12px; }
     .record-info { display: flex; gap: 8px; align-items: center; cursor: pointer; flex: 1; }
     .badge { padding: 1px 6px; border-radius: 4px; font-weight: 600; font-size: 11px; color: #fff; }
@@ -125,11 +124,11 @@
   <!-- 메인 컨텐츠 영역 -->
   <div class="content-section" style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
     
-    <!-- 1. 일정 관리 뷰 -->
+    <!-- 1. 일정 관리 뷰 (누적 스크롤 리스트) -->
     <div id="scheduleView" class="view-panel active">
       <div class="schedule-input-area">
         <button class="date-insert-btn" onclick="insertDatePrefix()">📅 날짜삽입</button>
-        <input type="text" id="scheduleInput" class="text-input" placeholder="선택한 날짜의 일정 입력...">
+        <input type="text" id="scheduleInput" class="text-input" placeholder="선택한 날짜의 일정 입력..." onkeypress="if(event.key==='Enter') addSchedule()">
         <button class="action-btn" onclick="addSchedule()">일정 추가</button>
       </div>
       <div class="schedule-list-area" id="scheduleList"></div>
@@ -156,7 +155,7 @@
         <div id="feedList"></div>
       </div>
 
-      <!-- 통계 화면 (토글 시 표시) -->
+      <!-- 통계 화면 -->
       <div class="stats-view" id="statsView">
         <div class="income-box">
           <label>💰 이번 달 월 수입</label>
@@ -184,7 +183,6 @@
   let selectedDate = new Date();
   let currentTab = 'schedule';
 
-  // 데이터 로드 (고유 키 사용)
   let schedules = JSON.parse(localStorage.getItem('unified_schedules_v2')) || {};
   let expenses = JSON.parse(localStorage.getItem('unified_expenses_v2')) || {};
   let monthlyIncomes = JSON.parse(localStorage.getItem('unified_incomes_v2')) || {};
@@ -232,7 +230,6 @@
     }
   }
 
-  // 달력 렌더링 (일정/지출 점 표시 포함)
   function renderCalendar() {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -275,7 +272,7 @@
     }
   }
 
-  // ================= 📅 일정 관리 기능 =================
+  // ================= 📅 일정 관리 기능 (누적 스크롤 리스트 + 수정 기능 복구) =================
   function insertDatePrefix() {
     const input = document.getElementById('scheduleInput');
     const yy = String(selectedDate.getFullYear()).slice(-2);
@@ -298,63 +295,73 @@
   }
 
   function renderSchedules() {
-    const key = formatDateKey(selectedDate);
     const list = document.getElementById('scheduleList');
     list.innerHTML = '';
-    const items = schedules[key] || [];
+    
+    // 등록된 모든 날짜 키를 정렬하여 누적 표시 (스크롤 지원)
+    const sortedKeys = Object.keys(schedules).filter(k => schedules[k]?.length > 0).sort();
 
-    if (items.length === 0) {
-      list.innerHTML = '<div style="color:#9ca3af; font-size:11px; text-align:center; margin-top:10px;">등록된 일정이 없습니다.</div>';
+    if (sortedKeys.length === 0) {
+      list.innerHTML = '<div style="color:#9ca3af; font-size:12px; text-align:center; margin-top:20px;">등록된 일정이 없습니다.</div>';
       return;
     }
 
-    items.forEach((item, idx) => {
-      const div = document.createElement('div');
-      div.className = 'schedule-item';
-      
-      const left = document.createElement('div');
-      left.className = 'schedule-left';
-      
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.checked = item.completed;
-      checkbox.style.cursor = 'pointer';
-      checkbox.addEventListener('change', () => {
-        schedules[key][idx].completed = checkbox.checked;
-        localStorage.setItem('unified_schedules_v2', JSON.stringify(schedules));
-        renderSchedules();
-      });
+    sortedKeys.forEach(dateKey => {
+      const items = schedules[dateKey];
+      const [y, m, d] = dateKey.split('-');
+      const group = document.createElement('div');
+      group.className = 'record-group';
+      group.innerHTML = `<div class="record-group-title">${y}년 ${parseInt(m)}월 ${parseInt(d)}일</div>`;
 
-      const span = document.createElement('span');
-      span.className = 'schedule-text' + (item.completed ? ' completed' : '');
-      span.textContent = item.text;
-      
-      // 일정 텍스트 클릭 시 수정 기능
-      span.addEventListener('click', () => {
-        const nt = prompt('일정 수정:', item.text);
-        if (nt !== null && nt.trim()) {
-          schedules[key][idx].text = nt.trim();
+      items.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'schedule-item';
+        
+        const left = document.createElement('div');
+        left.className = 'schedule-left';
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = item.completed;
+        checkbox.style.cursor = 'pointer';
+        checkbox.addEventListener('change', () => {
+          schedules[dateKey][index].completed = checkbox.checked;
           localStorage.setItem('unified_schedules_v2', JSON.stringify(schedules));
           renderSchedules();
-        }
+        });
+
+        const span = document.createElement('span');
+        span.className = 'schedule-text' + (item.completed ? ' completed' : '');
+        span.textContent = item.text;
+        
+        // 일정 텍스트 터치 시 수정 기능 복구
+        span.addEventListener('click', () => {
+          const nt = prompt('일정 수정:', item.text);
+          if (nt !== null && nt.trim()) {
+            schedules[dateKey][index].text = nt.trim();
+            localStorage.setItem('unified_schedules_v2', JSON.stringify(schedules));
+            renderSchedules();
+          }
+        });
+
+        left.appendChild(checkbox);
+        left.appendChild(span);
+
+        const del = document.createElement('button');
+        del.className = 'delete-btn';
+        del.innerHTML = '&times;';
+        del.addEventListener('click', () => {
+          schedules[dateKey].splice(index, 1);
+          if (schedules[dateKey].length === 0) delete schedules[dateKey];
+          localStorage.setItem('unified_schedules_v2', JSON.stringify(schedules));
+          renderApp();
+        });
+
+        div.appendChild(left);
+        div.appendChild(del);
+        group.appendChild(div);
       });
-
-      left.appendChild(checkbox);
-      left.appendChild(span);
-
-      const del = document.createElement('button');
-      del.className = 'delete-btn';
-      del.innerHTML = '&times;';
-      del.addEventListener('click', () => {
-        schedules[key].splice(idx, 1);
-        if (schedules[key].length === 0) delete schedules[key];
-        localStorage.setItem('unified_schedules_v2', JSON.stringify(schedules));
-        renderApp();
-      });
-
-      div.appendChild(left);
-      div.appendChild(del);
-      list.appendChild(div);
+      list.appendChild(group);
     });
   }
 
@@ -564,7 +571,6 @@
     if (statsContent) statsContent.innerHTML = html;
   }
 
-  // 초기 렌더링 실행
   renderApp();
 </script>
 
