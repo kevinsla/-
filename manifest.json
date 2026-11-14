@@ -1,4 +1,5 @@
 {
+  "lang": "ko",
   "name": "모바일 지출 기록기",
   "short_name": "가계부",
   "start_url": "./expense.html",
@@ -6,10 +7,17 @@
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#2563eb",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/7.png",
       "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png",
+      "sizes": "96x96",
       "type": "image/png"
     }
   ]
