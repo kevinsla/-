@@ -1,7 +1,7 @@
 {
   "lang": "ko",
-  "name": "일정 관리",
-  "short_name": "일정",
+  "name": "일정 및 가계부",
+  "short_name": "일정가계부",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
