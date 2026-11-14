@@ -1,4 +1,4 @@
-const CACHE_NAME = 'isolated-expense-v1';
+const CACHE_NAME = 'isolated-expense-v2';
 const ASSETS = [
   './expense.html',
   './expense-manifest.json'
