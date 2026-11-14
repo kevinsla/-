@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>모바일 지출 기록기</title>
+  <link rel="manifest" href="manifest.json">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     html, body { height: 100%; width: 100%; overflow: hidden; background-color: #ffffff; color: #1f2937; }
@@ -32,7 +34,7 @@
     .middle-section { flex: 0 0 42%; display: flex; background-color: #fafafa; border-bottom: 2px solid #e5e7eb; overflow: hidden; }
     .selector-panel { display: flex; width: 100%; background-color: #ffffff; padding: 6px 8px; gap: 8px; }
     
-    /* 왼쪽 세로 날짜 선택 (정확히 5개 높이 맞춤 + 기준점 설정) */
+    /* 왼쪽 세로 날짜 선택 (정확히 5개 높이 맞춤) */
     .date-col { flex: 0 0 84px; display: flex; flex-direction: column; border-right: 1px solid #f0f0f0; padding-right: 6px; height: 100%; }
     .col-title { font-size: 11px; font-weight: 700; color: #4b5563; margin-bottom: 4px; flex-shrink: 0; }
     .vertical-date-scroll { position: relative; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; scrollbar-width: none; }
@@ -232,7 +234,6 @@
       if (isActive) activeChip = chip;
     }
 
-    // 선택된 날짜가 리스트의 정확히 정가운데에 오도록 스크롤 위치 강제 조정 (기준점 추가 완료)
     if (activeChip) {
       setTimeout(() => {
         list.scrollTop = activeChip.offsetTop - (list.clientHeight / 2) + (activeChip.offsetHeight / 2);
