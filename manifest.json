@@ -1,14 +1,14 @@
 {
-  "name": "나만의 일정 위젯",
-  "short_name": "일정위젯",
-  "start_url": "./",
+  "name": "모바일 지출 기록기",
+  "short_name": "가계부",
+  "start_url": "./expense.html",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "theme_color": "#2563eb",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/2693/2693507.png",
-      "sizes": "512x512",
+      "src": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png",
+      "sizes": "96x96",
       "type": "image/png"
     }
   ]
