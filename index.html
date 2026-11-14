@@ -73,6 +73,7 @@
     .category-col { flex: 1; display: flex; flex-direction: column; overflow-y: auto; height: 100%; }
     .category-cloud { display: flex; flex-wrap: wrap; gap: 8px 6px; align-content: flex-start; padding-top: 4px; padding-right: 4px; }
     .cat-chip { position: relative; padding: 6px 12px; font-size: 11px; border-radius: 14px; border: 1px solid transparent; cursor: pointer; font-weight: 600; }
+    .poke-badge { position: absolute; top: -7px; right: -5px; width: 18px; height: 18px; pointer-events: none; image-rendering: pixelated; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2)); }
     .cat-add-btn { padding: 6px 10px; font-size: 11px; border-radius: 14px; border: 1px dashed #9ca3af; background: #fff; color: #6b7280; cursor: pointer; font-weight: 600; }
 
     .expense-feed-section { flex: 1; overflow-y: auto; padding: 6px 10px; }
@@ -124,7 +125,7 @@
   <!-- 메인 컨텐츠 영역 -->
   <div class="content-section" style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
     
-    <!-- 1. 일정 관리 뷰 -->
+    <!-- 1. 일정 관리 뷰 (포켓몬 없음) -->
     <div id="scheduleView" class="view-panel active">
       <div class="schedule-input-area">
         <button class="date-insert-btn" onclick="insertDatePrefix()">날짜삽입</button>
@@ -134,9 +135,9 @@
       <div class="schedule-list-area" id="scheduleList"></div>
     </div>
 
-    <!-- 2. 가계부 뷰 -->
+    <!-- 2. 가계부 뷰 (포켓몬 유지) -->
     <div id="expenseView" class="view-panel">
-      <!-- 중간: 세로 날짜 선택바 + 카테고리 클라우드 -->
+      <!-- 중간: 세로 날짜 선택바 + 포켓몬 카테고리 클라우드 -->
       <div class="expense-middle" id="expenseInputView">
         <div class="selector-panel">
           <div class="date-col">
@@ -188,8 +189,11 @@
   let monthlyIncomes = JSON.parse(localStorage.getItem('unified_incomes_v2')) || {};
   
   const categoryColors = { '점심': '#2563eb', '저녁': '#059669', '커피': '#d97706', '택시': '#dc2626', '쇼핑': '#7c3aed', '기타': '#4b5563' };
+  const defaultPokeIds = { '점심': 7, '저녁': 1, '커피': 4, '택시': 25, '쇼핑': 94, '기타': 133 };
+  const randomPokePool = [7, 1, 4, 25, 94, 133, 39, 52, 54, 143, 151, 175];
   const weekNames = ['일', '월', '화', '수', '목', '금', '토'];
   
+  let customPokeIds = JSON.parse(localStorage.getItem('unified_pokes_v2')) || defaultPokeIds;
   let customCategories = JSON.parse(localStorage.getItem('unified_cats_v2')) || ['점심', '저녁', '커피', '택시', '쇼핑', '기타'];
   let selectedCategory = customCategories[0] || '점심';
   let isStatsMode = false;
@@ -270,7 +274,7 @@
     }
   }
 
-  // ================= 📅 일정 관리 기능 =================
+  // ================= 📅 일정 관리 기능 (포켓몬 없음) =================
   function insertDatePrefix() {
     const input = document.getElementById('scheduleInput');
     const yy = String(selectedDate.getFullYear()).slice(-2);
@@ -373,7 +377,7 @@
     });
   }
 
-  // ================= 💰 가계부 지출 기능 =================
+  // ================= 💰 가계부 지출 기능 (포켓몬 유지) =================
   function renderVerticalDates() {
     const list = document.getElementById('verticalDateList');
     if (!list) return;
@@ -408,7 +412,7 @@
     const cloud = document.getElementById('categoryCloud');
     if (!cloud) return;
     cloud.innerHTML = '';
-    customCategories.forEach((cat) => {
+    customCategories.forEach((cat, idx) => {
       const chip = document.createElement('div');
       chip.className = 'cat-chip';
       const color = categoryColors[cat] || '#2563eb';
@@ -421,6 +425,14 @@
         chip.style.borderColor = color;
       }
       chip.textContent = cat;
+
+      const pokeId = customPokeIds[cat] || randomPokePool[idx % randomPokePool.length];
+      const pokeImg = document.createElement('img');
+      pokeImg.className = 'poke-badge';
+      pokeImg.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokeId}.png`;
+      pokeImg.onerror = function() { this.style.display = 'none'; };
+      chip.appendChild(pokeImg);
+
       chip.addEventListener('click', () => { selectedCategory = cat; renderApp(); });
       cloud.appendChild(chip);
     });
@@ -435,7 +447,9 @@
         customCategories.push(trimmed);
         const colors = ['#2563eb', '#059669', '#d97706', '#dc2626', '#7c3aed', '#0284c7', '#db2777'];
         categoryColors[trimmed] = colors[Math.floor(Math.random() * colors.length)];
+        customPokeIds[trimmed] = randomPokePool[Math.floor(Math.random() * randomPokePool.length)];
         localStorage.setItem('unified_cats_v2', JSON.stringify(customCategories));
+        localStorage.setItem('unified_pokes_v2', JSON.stringify(customPokeIds));
         selectedCategory = trimmed;
         renderApp();
       }
