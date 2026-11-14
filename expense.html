@@ -28,28 +28,29 @@
     .day-cell.today { font-weight: 800; background-color: #eff6ff; color: #2563eb; }
     .day-cell.selected { background-color: #2563eb; color: #ffffff !important; font-weight: 700; }
 
-    /* 2. 중간 (2/4): 선택 영역 + 내역 피드 */
-    .middle-section { flex: 0 0 50%; display: flex; flex-direction: column; background-color: #fafafa; overflow: hidden; border-bottom: 2px solid #e5e7eb; }
-    .selector-panel { display: flex; background-color: #ffffff; border-bottom: 1px solid #e5e7eb; padding: 6px 8px; gap: 8px; height: 56%; }
+    /* 2. 중간 (2/4): 선택 영역 (날짜 + 항목) */
+    .middle-section { flex: 0 0 50%; display: flex; background-color: #fafafa; border-bottom: 2px solid #e5e7eb; overflow: hidden; }
+    .selector-panel { display: flex; width: 100%; background-color: #ffffff; padding: 6px 8px; gap: 8px; }
     
-    /* 왼쪽 세로 날짜 선택 (5개가 딱 보이고 중간에 위치하도록 설정) */
+    /* 왼쪽 세로 날짜 선택 (정확히 5개 높이 맞춤) */
     .date-col { flex: 0 0 84px; display: flex; flex-direction: column; border-right: 1px solid #f0f0f0; padding-right: 6px; height: 100%; }
     .col-title { font-size: 11px; font-weight: 700; color: #4b5563; margin-bottom: 4px; flex-shrink: 0; }
     .vertical-date-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; scrollbar-width: none; }
     .vertical-date-scroll::-webkit-scrollbar { display: none; }
-    .date-chip { height: calc((100% - 16px) / 5); min-height: 24px; display: flex; align-items: center; justify-content: center; font-size: 11px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; cursor: pointer; font-weight: 600; flex-shrink: 0; }
+    .date-chip { height: calc((100% - 16px) / 5); min-height: 26px; display: flex; align-items: center; justify-content: center; font-size: 11px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; cursor: pointer; font-weight: 600; flex-shrink: 0; }
     .date-chip.active { background-color: #2563eb; color: #ffffff; border-color: #2563eb; }
 
-    /* 오른쪽 항목 선택 + 포켓몬 미니 아이콘 */
+    /* 오른쪽 항목 선택 + 포켓몬 아이콘 */
     .category-col { flex: 1; display: flex; flex-direction: column; overflow-y: auto; height: 100%; }
     .category-cloud { display: flex; flex-wrap: wrap; gap: 8px 6px; align-content: flex-start; padding-top: 4px; padding-right: 4px; }
     .cat-chip { position: relative; padding: 6px 12px; font-size: 11px; border-radius: 14px; border: 1px solid transparent; cursor: pointer; font-weight: 600; }
     .poke-badge { position: absolute; top: -7px; right: -5px; width: 18px; height: 18px; pointer-events: none; image-rendering: pixelated; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2)); }
     .cat-add-btn { padding: 6px 10px; font-size: 11px; border-radius: 14px; border: 1px dashed #9ca3af; background: #fff; color: #6b7280; cursor: pointer; font-weight: 600; }
 
-    /* 하단 피드 목록 */
-    .feed-list { flex: 1; overflow-y: auto; padding: 6px 8px; background: #fafafa; }
-    .empty-msg { text-align: center; color: #9ca3af; font-size: 12px; margin-top: 12px; }
+    /* 3. 입력 완료된 항목 피드 (입력란 바로 위 영역) */
+    .feed-section { flex: 1; background-color: #fafafa; display: flex; flex-direction: column; overflow: hidden; }
+    .feed-list { flex: 1; overflow-y: auto; padding: 6px 10px; }
+    .empty-msg { text-align: center; color: #9ca3af; font-size: 12px; margin-top: 10px; }
     .record-group { margin-bottom: 6px; background: #fff; border-radius: 6px; padding: 6px 10px; border: 1px solid #f0f0f0; }
     .record-group-title { font-size: 11px; font-weight: 700; color: #2563eb; margin-bottom: 2px; border-bottom: 1px solid #f3f4f6; padding-bottom: 2px; }
     .record-item { display: flex; align-items: center; justify-content: space-between; padding: 3px 0; font-size: 12px; }
@@ -69,8 +70,8 @@
     .bar-container { flex: 1; height: 8px; background: #f3f4f6; border-radius: 4px; margin: 0 10px; overflow: hidden; }
     .bar-fill { height: 100%; border-radius: 4px; }
 
-    /* 3. 최하단 (1/4): 입력 영역 */
-    .bottom-input-area { flex: 0 0 25%; display: flex; align-items: center; padding: 8px 10px; background: #fff; gap: 6px; }
+    /* 4. 최하단 (1/4): 입력 영역 */
+    .bottom-input-area { flex: 0 0 25%; display: flex; align-items: center; padding: 8px 10px; background: #fff; gap: 6px; border-top: 2px solid #e5e7eb; }
     .preview-badge { background: #e0e7ff; color: #3730a3; padding: 8px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; white-space: nowrap; }
     .price-input { flex: 1; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; outline: none; }
     .add-btn { background-color: #2563eb; color: white; border: none; border-radius: 6px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; max-height: 40px; }
@@ -105,6 +106,10 @@
         <div class="category-cloud" id="categoryCloud"></div>
       </div>
     </div>
+  </div>
+
+  <!-- 입력 완료된 항목 피드 (입력란 바로 위) -->
+  <div class="feed-section" id="feedSection">
     <div class="feed-list" id="feedList"></div>
   </div>
 
@@ -119,6 +124,7 @@
     </div>
   </div>
 
+  <!-- 최하단 입력 영역 -->
   <div class="bottom-input-area" id="bottomInputArea">
     <div class="preview-badge" id="previewBadge">선택중</div>
     <input type="number" class="price-input" id="priceInput" placeholder="금액 입력">
@@ -128,8 +134,6 @@
 
 <script>
   const categoryColors = { '점심': '#2563eb', '저녁': '#059669', '커피': '#d97706', '택시': '#dc2626', '쇼핑': '#7c3aed', '기타': '#4b5563' };
-  
-  // 항목별 포켓몬 스프라이트 ID 매핑 (파랑:꼬부기7, 초록:이상해씨1, 주황:파이리4, 빨강:피카츄25, 보라:팬텀94, 회색:이브이133)
   const defaultPokeIds = { '점심': 7, '저녁': 1, '커피': 4, '택시': 25, '쇼핑': 94, '기타': 133 };
   const randomPokePool = [7, 1, 4, 25, 94, 133, 39, 52, 54, 143, 151, 175];
   
@@ -209,7 +213,6 @@
     const selectedKey = formatDateKey(selectedDate);
     let activeChip = null;
 
-    // 선택된 날짜 기준 앞뒤 15일치 생성
     for (let i = -15; i <= 15; i++) {
       const target = new Date(selectedDate);
       target.setDate(selectedDate.getDate() + i);
@@ -223,7 +226,6 @@
       if (isActive) activeChip = chip;
     }
 
-    // 선택된 날짜가 5개 칸 중 정중앙(3번째)에 오도록 자동 스크롤
     if (activeChip) {
       requestAnimationFrame(() => {
         const containerHeight = list.clientHeight;
@@ -252,7 +254,6 @@
       }
       chip.textContent = cat;
 
-      // 우측 상단 초소형 포켓몬 이미지 부착
       const pokeId = customPokeIds[cat] || randomPokePool[idx % randomPokePool.length];
       const pokeImg = document.createElement('img');
       pokeImg.className = 'poke-badge';
@@ -394,6 +395,7 @@
     modeBtn.addEventListener('click', () => {
       isStatsMode = !isStatsMode;
       document.getElementById('inputView').style.display = isStatsMode ? 'none' : 'flex';
+      document.getElementById('feedSection').style.display = isStatsMode ? 'none' : 'flex';
       document.getElementById('statsView').style.display = isStatsMode ? 'block' : 'none';
       document.getElementById('bottomInputArea').style.display = isStatsMode ? 'none' : 'flex';
       modeBtn.textContent = isStatsMode ? '📝 기록하기' : '📊 통계/수입';
