@@ -9,41 +9,47 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     html, body { height: 100%; width: 100%; overflow: hidden; background-color: #ffffff; color: #1f2937; }
-    .app-container { display: flex; flex-direction: column; height: 100vh; max-width: 800px; margin: 0 auto; background-color: #ffffff; }
+    .app-container { display: flex; flex-direction: column; height: 100dvh; max-width: 800px; margin: 0 auto; background-color: #ffffff; }
 
-    /* 1. 최상단 (1/4): 달력 영역 (가운데 정렬 및 여백 확보) */
+    /* 1. 최상단 (1/4): 달력 영역 */
     .top-calendar { flex: 0 0 25%; display: flex; flex-direction: column; justify-content: center; border-bottom: 2px solid #e5e7eb; background: #fff; padding: 4px 10px; }
-    .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
-    .calendar-header h2 { font-size: 13px; font-weight: 700; }
-    .header-right { display: flex; gap: 4px; align-items: center; }
+    .calendar-header { position: relative; display: flex; justify-content: space-between; align-items: center; height: 24px; margin-bottom: 2px; }
+    .calendar-header h2 { position: absolute; left: 50%; transform: translateX(-50%); font-size: 13px; font-weight: 700; white-space: nowrap; pointer-events: none; }
+    .header-left, .header-right { display: flex; gap: 4px; align-items: center; z-index: 1; }
     .nav-btn, .mode-btn { background: #f3f4f6; border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: bold; cursor: pointer; }
     .mode-btn { background-color: #eff6ff; color: #2563eb; }
     .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 9px; font-weight: 600; color: #6b7280; margin-bottom: 1px; }
     .weekdays div:first-child { color: #ef4444; }
     .weekdays div:last-child { color: #3b82f6; }
     .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
-    .day-cell { aspect-ratio: 2.5; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; border-radius: 3px; cursor: pointer; background-color: #f9fafb; }
+    .day-cell { aspect-ratio: 2.6; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; border-radius: 3px; cursor: pointer; background-color: #f9fafb; }
     .day-cell.sun { color: #ef4444; }
     .day-cell.sat { color: #3b82f6; }
     .day-cell.today { font-weight: 800; background-color: #eff6ff; color: #2563eb; }
     .day-cell.selected { background-color: #2563eb; color: #ffffff !important; font-weight: 700; }
 
-    /* 2. 중간 (2/4): 선택 영역이 화면의 절반을 차지하도록 확장 */
+    /* 2. 중간 (2/4): 선택 영역 + 내역 피드 */
     .middle-section { flex: 0 0 50%; display: flex; flex-direction: column; background-color: #fafafa; overflow: hidden; border-bottom: 2px solid #e5e7eb; }
-    .selector-panel { display: flex; background-color: #ffffff; border-bottom: 1px solid #e5e7eb; padding: 8px; gap: 8px; height: 50%; }
+    .selector-panel { display: flex; background-color: #ffffff; border-bottom: 1px solid #e5e7eb; padding: 6px 8px; gap: 8px; height: 56%; }
     
-    .date-col { flex: 0 0 90px; display: flex; flex-direction: column; gap: 3px; border-right: 1px solid #f0f0f0; padding-right: 6px; overflow-y: auto; height: 100%; }
-    .col-title { font-size: 11px; font-weight: 700; color: #4b5563; margin-bottom: 2px; }
-    .date-chip { padding: 8px 4px; font-size: 11px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; text-align: center; cursor: pointer; font-weight: 600; flex-shrink: 0; }
+    /* 왼쪽 세로 날짜 선택 (5개가 딱 보이고 중간에 위치하도록 설정) */
+    .date-col { flex: 0 0 84px; display: flex; flex-direction: column; border-right: 1px solid #f0f0f0; padding-right: 6px; height: 100%; }
+    .col-title { font-size: 11px; font-weight: 700; color: #4b5563; margin-bottom: 4px; flex-shrink: 0; }
+    .vertical-date-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; scrollbar-width: none; }
+    .vertical-date-scroll::-webkit-scrollbar { display: none; }
+    .date-chip { height: calc((100% - 16px) / 5); min-height: 24px; display: flex; align-items: center; justify-content: center; font-size: 11px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; cursor: pointer; font-weight: 600; flex-shrink: 0; }
     .date-chip.active { background-color: #2563eb; color: #ffffff; border-color: #2563eb; }
 
-    .category-col { flex: 1; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; height: 100%; }
-    .category-cloud { display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; }
-    .cat-chip { padding: 6px 12px; font-size: 11px; border-radius: 14px; border: 1px solid transparent; cursor: pointer; font-weight: 600; }
+    /* 오른쪽 항목 선택 + 포켓몬 미니 아이콘 */
+    .category-col { flex: 1; display: flex; flex-direction: column; overflow-y: auto; height: 100%; }
+    .category-cloud { display: flex; flex-wrap: wrap; gap: 8px 6px; align-content: flex-start; padding-top: 4px; padding-right: 4px; }
+    .cat-chip { position: relative; padding: 6px 12px; font-size: 11px; border-radius: 14px; border: 1px solid transparent; cursor: pointer; font-weight: 600; }
+    .poke-badge { position: absolute; top: -7px; right: -5px; width: 18px; height: 18px; pointer-events: none; image-rendering: pixelated; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2)); }
     .cat-add-btn { padding: 6px 10px; font-size: 11px; border-radius: 14px; border: 1px dashed #9ca3af; background: #fff; color: #6b7280; cursor: pointer; font-weight: 600; }
 
-    .feed-list { flex: 1; overflow-y: auto; padding: 8px; background: #fafafa; }
-    .empty-msg { text-align: center; color: #9ca3af; font-size: 12px; margin-top: 15px; }
+    /* 하단 피드 목록 */
+    .feed-list { flex: 1; overflow-y: auto; padding: 6px 8px; background: #fafafa; }
+    .empty-msg { text-align: center; color: #9ca3af; font-size: 12px; margin-top: 12px; }
     .record-group { margin-bottom: 6px; background: #fff; border-radius: 6px; padding: 6px 10px; border: 1px solid #f0f0f0; }
     .record-group-title { font-size: 11px; font-weight: 700; color: #2563eb; margin-bottom: 2px; border-bottom: 1px solid #f3f4f6; padding-bottom: 2px; }
     .record-item { display: flex; align-items: center; justify-content: space-between; padding: 3px 0; font-size: 12px; }
@@ -67,7 +73,7 @@
     .bottom-input-area { flex: 0 0 25%; display: flex; align-items: center; padding: 8px 10px; background: #fff; gap: 6px; }
     .preview-badge { background: #e0e7ff; color: #3730a3; padding: 8px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; white-space: nowrap; }
     .price-input { flex: 1; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; outline: none; }
-    .add-btn { background-color: #2563eb; color: white; border: none; border-radius: 6px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; height: 100%; max-height: 40px; }
+    .add-btn { background-color: #2563eb; color: white; border: none; border-radius: 6px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; max-height: 40px; }
   </style>
 </head>
 <body>
@@ -75,7 +81,9 @@
 <div class="app-container">
   <div class="top-calendar">
     <div class="calendar-header">
-      <button class="nav-btn" id="prevMonth">&lt;</button>
+      <div class="header-left">
+        <button class="nav-btn" id="prevMonth">&lt;</button>
+      </div>
       <h2 id="monthYearText"></h2>
       <div class="header-right">
         <button class="mode-btn" id="modeSwitchBtn">📊 통계/수입</button>
@@ -90,7 +98,7 @@
     <div class="selector-panel">
       <div class="date-col">
         <div class="col-title">📅 날짜</div>
-        <div id="verticalDateList" style="display: flex; flex-direction: column; gap: 4px;"></div>
+        <div class="vertical-date-scroll" id="verticalDateList"></div>
       </div>
       <div class="category-col">
         <div class="col-title">🏷️ 항목 선택</div>
@@ -120,6 +128,12 @@
 
 <script>
   const categoryColors = { '점심': '#2563eb', '저녁': '#059669', '커피': '#d97706', '택시': '#dc2626', '쇼핑': '#7c3aed', '기타': '#4b5563' };
+  
+  // 항목별 포켓몬 스프라이트 ID 매핑 (파랑:꼬부기7, 초록:이상해씨1, 주황:파이리4, 빨강:피카츄25, 보라:팬텀94, 회색:이브이133)
+  const defaultPokeIds = { '점심': 7, '저녁': 1, '커피': 4, '택시': 25, '쇼핑': 94, '기타': 133 };
+  const randomPokePool = [7, 1, 4, 25, 94, 133, 39, 52, 54, 143, 151, 175];
+  
+  let customPokeIds = JSON.parse(localStorage.getItem('my_expense_pokes')) || defaultPokeIds;
   let customCategories = JSON.parse(localStorage.getItem('my_expense_cats')) || ['점심', '저녁', '커피', '택시', '쇼핑', '기타'];
   let currentDate = new Date();
   let selectedDate = new Date();
@@ -129,7 +143,10 @@
   let isStatsMode = false;
 
   function saveRecords() { localStorage.setItem('my_expense_app_v2', JSON.stringify(records)); }
-  function saveCategories() { localStorage.setItem('my_expense_cats', JSON.stringify(customCategories)); }
+  function saveCategories() { 
+    localStorage.setItem('my_expense_cats', JSON.stringify(customCategories)); 
+    localStorage.setItem('my_expense_pokes', JSON.stringify(customPokeIds));
+  }
   function saveIncomes() { localStorage.setItem('my_monthly_incomes', JSON.stringify(monthlyIncomes)); }
 
   function formatDateKey(date) {
@@ -189,15 +206,31 @@
     const list = document.getElementById('verticalDateList');
     if (!list) return;
     list.innerHTML = '';
-    for (let i = -7; i <= 7; i++) {
+    const selectedKey = formatDateKey(selectedDate);
+    let activeChip = null;
+
+    // 선택된 날짜 기준 앞뒤 15일치 생성
+    for (let i = -15; i <= 15; i++) {
       const target = new Date(selectedDate);
       target.setDate(selectedDate.getDate() + i);
       const dateKey = formatDateKey(target);
       const chip = document.createElement('div');
-      chip.className = 'date-chip' + (dateKey === formatDateKey(selectedDate) ? ' active' : '');
+      const isActive = dateKey === selectedKey;
+      chip.className = 'date-chip' + (isActive ? ' active' : '');
       chip.textContent = `${target.getMonth() + 1}/${target.getDate()}`;
       chip.addEventListener('click', () => { selectedDate = target; renderApp(); });
       list.appendChild(chip);
+      if (isActive) activeChip = chip;
+    }
+
+    // 선택된 날짜가 5개 칸 중 정중앙(3번째)에 오도록 자동 스크롤
+    if (activeChip) {
+      requestAnimationFrame(() => {
+        const containerHeight = list.clientHeight;
+        const chipTop = activeChip.offsetTop;
+        const chipHeight = activeChip.offsetHeight;
+        list.scrollTop = chipTop - (containerHeight / 2) + (chipHeight / 2);
+      });
     }
   }
 
@@ -205,7 +238,7 @@
     const cloud = document.getElementById('categoryCloud');
     if (!cloud) return;
     cloud.innerHTML = '';
-    customCategories.forEach(cat => {
+    customCategories.forEach((cat, idx) => {
       const chip = document.createElement('div');
       chip.className = 'cat-chip';
       const color = categoryColors[cat] || '#2563eb';
@@ -218,6 +251,15 @@
         chip.style.borderColor = color;
       }
       chip.textContent = cat;
+
+      // 우측 상단 초소형 포켓몬 이미지 부착
+      const pokeId = customPokeIds[cat] || randomPokePool[idx % randomPokePool.length];
+      const pokeImg = document.createElement('img');
+      pokeImg.className = 'poke-badge';
+      pokeImg.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokeId}.png`;
+      pokeImg.onerror = function() { this.style.display = 'none'; };
+      chip.appendChild(pokeImg);
+
       chip.addEventListener('click', () => { selectedCategory = cat; renderApp(); });
       cloud.appendChild(chip);
     });
@@ -230,7 +272,9 @@
       if (newCat && newCat.trim() && !customCategories.includes(newCat.trim())) {
         const trimmed = newCat.trim();
         customCategories.push(trimmed);
-        categoryColors[trimmed] = '#' + Math.floor(Math.random()*16777215).toString(16);
+        const colors = ['#2563eb', '#059669', '#d97706', '#dc2626', '#7c3aed', '#0284c7', '#db2777'];
+        categoryColors[trimmed] = colors[Math.floor(Math.random() * colors.length)];
+        customPokeIds[trimmed] = randomPokePool[Math.floor(Math.random() * randomPokePool.length)];
         saveCategories();
         selectedCategory = trimmed;
         renderApp();
