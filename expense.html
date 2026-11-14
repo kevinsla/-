@@ -33,7 +33,7 @@
       background-color: #ffffff;
     }
 
-    /* 1. 최상단 (약 1/4): 달력 영역 */
+    /* 1. 최상단 (1/4): 달력 영역 */
     .top-calendar {
       flex: 0 0 auto;
       border-bottom: 2px solid #e5e7eb;
@@ -85,7 +85,7 @@
     }
 
     .day-cell {
-      aspect-ratio: 1.8;
+      aspect-ratio: 2.2;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -102,7 +102,7 @@
     .day-cell.today { font-weight: 800; background-color: #eff6ff; color: #2563eb; }
     .day-cell.selected { background-color: #2563eb; color: #ffffff !important; font-weight: 700; }
 
-    /* 2. 중간 (약 1/2): 선택 영역 (좌우 분할) + 누적 내역 피드 */
+    /* 2. 중간 (1/2): 선택 영역 + 지출 내역 피드 */
     .middle-section {
       flex: 1;
       display: flex;
@@ -117,30 +117,31 @@
       border-bottom: 1px solid #e5e7eb;
       padding: 8px;
       gap: 8px;
-      max-height: 140px;
-      overflow-y: auto;
     }
 
-    /* 왼쪽 절반: 날짜선택 */
-    .date-select-col {
+    .select-col {
       flex: 1;
       display: flex;
       flex-direction: column;
       gap: 4px;
-      border-right: 1px solid #f0f0f0;
-      padding-right: 6px;
     }
 
     .col-title {
       font-size: 11px;
       font-weight: 700;
       color: #4b5563;
-      margin-bottom: 2px;
+    }
+
+    .chips-scroll {
+      display: flex;
+      gap: 4px;
+      overflow-x: auto;
+      padding-bottom: 2px;
     }
 
     .select-chip {
-      padding: 6px 8px;
-      font-size: 12px;
+      padding: 6px 10px;
+      font-size: 11px;
       border: 1px solid #d1d5db;
       border-radius: 6px;
       background-color: #ffffff;
@@ -148,6 +149,8 @@
       text-align: center;
       cursor: pointer;
       font-weight: 600;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .select-chip.active {
@@ -156,21 +159,13 @@
       border-color: #2563eb;
     }
 
-    /* 오른쪽 절반: 항목 선택 */
-    .category-select-col {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
     .category-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 4px;
     }
 
-    /* 하단 피드 (기록된 내역 목록) */
+    /* 하단 피드 목록 */
     .feed-list {
       flex: 1;
       overflow-y: auto;
@@ -241,7 +236,7 @@
     }
     .delete-btn:active { color: #ef4444; }
 
-    /* 3. 최하단: 입력 및 입력창 보기 영역 */
+    /* 3. 최하단 (1/4): 입력 영역 */
     .bottom-input-area {
       flex: 0 0 auto;
       display: flex;
@@ -303,16 +298,16 @@
     <div class="days-grid" id="daysGrid"></div>
   </div>
 
-  <!-- 2. 중간: 좌우 선택 패널 + 지출 내역 피드 -->
+  <!-- 2. 중간: 선택 영역 + 피드 -->
   <div class="middle-section">
     <div class="selector-panel">
-      <!-- 왼쪽: 날짜 선택 -->
-      <div class="date-select-col">
+      <!-- 왼쪽: 날짜 선택 (가로 스크롤 칩) -->
+      <div class="select-col" style="flex: 1.2;">
         <div class="col-title">📅 날짜 선택</div>
-        <div id="dateChipsContainer" style="display: flex; flex-direction: column; gap: 4px;"></div>
+        <div class="chips-scroll" id="dateChipsContainer"></div>
       </div>
-      <!-- 오른쪽: 항목 선택 -->
-      <div class="category-select-col">
+      <!-- 오른쪽: 항목 선택 (점심, 저녁, 커피 등 그리드) -->
+      <div class="select-col" style="flex: 1.8;">
         <div class="col-title">🏷️ 항목 선택</div>
         <div class="category-grid" id="categoryGrid"></div>
       </div>
@@ -321,10 +316,10 @@
     <div class="feed-list" id="feedList"></div>
   </div>
 
-  <!-- 3. 최하단: 입력 미리보기 및 금액 수기 입력 -->
+  <!-- 3. 최하단: 입력 -->
   <div class="bottom-input-area">
     <div class="preview-badge" id="previewBadge">날짜/항목 선택</div>
-    <input type="number" class="price-input" id="priceInput" placeholder="금액 입력 (예: 12000)">
+    <input type="number" class="price-input" id="priceInput" placeholder="금액 입력">
     <button class="add-btn" id="addBtn">추가</button>
   </div>
 
@@ -334,7 +329,7 @@
   if ('serviceWorker' in navigator) {
     const swCode = `
       self.addEventListener('install', e => {
-        e.waitUntil(caches.open('pwa-expense-v1').then(cache => cache.addAll(['./'])));
+        e.waitUntil(caches.open('pwa-expense-v2').then(cache => cache.addAll(['./'])));
       });
       self.addEventListener('fetch', e => {
         e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
@@ -546,4 +541,13 @@
     renderCalendar();
   });
 
-  document.getElementById
+  document.getElementById('nextMonth').addEventListener('click', () => {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    renderCalendar();
+  });
+
+  renderApp();
+</script>
+
+</body>
+</html>
