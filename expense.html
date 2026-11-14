@@ -3,11 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
+  <meta name="application-name" content="모바일 지출 기록기">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="가계부">
   <title>모바일 지출 기록기</title>
-  <link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/7.png">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     html, body { height: 100%; width: 100%; overflow: hidden; background-color: #ffffff; color: #1f2937; }
@@ -34,7 +37,7 @@
     .middle-section { flex: 0 0 42%; display: flex; background-color: #fafafa; border-bottom: 2px solid #e5e7eb; overflow: hidden; }
     .selector-panel { display: flex; width: 100%; background-color: #ffffff; padding: 6px 8px; gap: 8px; }
     
-    /* 왼쪽 세로 날짜 선택 (정확히 5개 높이 맞춤) */
+    /* 왼쪽 세로 날짜 선택 */
     .date-col { flex: 0 0 84px; display: flex; flex-direction: column; border-right: 1px solid #f0f0f0; padding-right: 6px; height: 100%; }
     .col-title { font-size: 11px; font-weight: 700; color: #4b5563; margin-bottom: 4px; flex-shrink: 0; }
     .vertical-date-scroll { position: relative; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; scrollbar-width: none; }
@@ -49,7 +52,7 @@
     .poke-badge { position: absolute; top: -7px; right: -5px; width: 18px; height: 18px; pointer-events: none; image-rendering: pixelated; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2)); }
     .cat-add-btn { padding: 6px 10px; font-size: 11px; border-radius: 14px; border: 1px dashed #9ca3af; background: #fff; color: #6b7280; cursor: pointer; font-weight: 600; }
 
-    /* 3. 입력 완료된 항목 피드 (입력란 바로 위 영역) */
+    /* 3. 입력 완료된 항목 피드 */
     .feed-section { flex: 1; background-color: #fafafa; display: flex; flex-direction: column; overflow: hidden; }
     .feed-list { flex: 1; overflow-y: auto; padding: 6px 10px; }
     .empty-msg { text-align: center; color: #9ca3af; font-size: 12px; margin-top: 10px; }
@@ -72,7 +75,7 @@
     .bar-container { flex: 1; height: 8px; background: #f3f4f6; border-radius: 4px; margin: 0 10px; overflow: hidden; }
     .bar-fill { height: 100%; border-radius: 4px; }
 
-    /* 4. 최하단: 입력 영역 (바닥 고정) */
+    /* 4. 최하단: 입력 영역 */
     .bottom-input-area { flex: 0 0 auto; display: flex; align-items: center; padding: 8px 10px; background: #fff; gap: 6px; border-top: 2px solid #e5e7eb; }
     .preview-badge { background: #e0e7ff; color: #3730a3; padding: 8px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; white-space: nowrap; }
     .price-input { flex: 1; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; outline: none; }
@@ -110,7 +113,6 @@
     </div>
   </div>
 
-  <!-- 입력 완료된 항목 피드 (입력란 바로 위) -->
   <div class="feed-section" id="feedSection">
     <div class="feed-list" id="feedList"></div>
   </div>
@@ -126,7 +128,6 @@
     </div>
   </div>
 
-  <!-- 최하단 입력 영역 -->
   <div class="bottom-input-area" id="bottomInputArea">
     <div class="preview-badge" id="previewBadge">선택중</div>
     <input type="number" class="price-input" id="priceInput" placeholder="금액 입력">
@@ -437,7 +438,7 @@
 
   renderApp();
 
-  // 서비스 워커 등록 (주소창에 다운로드 버튼을 띄우기 위한 필수 코드)
+  // 서비스 워커 등록
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js')
