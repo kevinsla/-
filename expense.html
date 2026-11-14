@@ -29,7 +29,7 @@
     .day-cell.selected { background-color: #2563eb; color: #ffffff !important; font-weight: 700; }
 
     /* 2. 중간 (2/4): 선택 영역 (날짜 + 항목) */
-    .middle-section { flex: 0 0 45%; display: flex; background-color: #fafafa; border-bottom: 2px solid #e5e7eb; overflow: hidden; }
+    .middle-section { flex: 0 0 42%; display: flex; background-color: #fafafa; border-bottom: 2px solid #e5e7eb; overflow: hidden; }
     .selector-panel { display: flex; width: 100%; background-color: #ffffff; padding: 6px 8px; gap: 8px; }
     
     /* 왼쪽 세로 날짜 선택 (정확히 5개 높이 맞춤) */
@@ -140,7 +140,7 @@
   let customPokeIds = JSON.parse(localStorage.getItem('my_expense_pokes')) || defaultPokeIds;
   let customCategories = JSON.parse(localStorage.getItem('my_expense_cats')) || ['점심', '저녁', '커피', '택시', '쇼핑', '기타'];
   let currentDate = new Date();
-  let selectedDate = new Date(); // 오늘 날짜 기본 선택
+  let selectedDate = new Date();
   let selectedCategory = customCategories[0] || '점심';
   let records = JSON.parse(localStorage.getItem('my_expense_app_v2')) || {};
   let monthlyIncomes = JSON.parse(localStorage.getItem('my_monthly_incomes')) || {};
@@ -213,7 +213,6 @@
     const selectedKey = formatDateKey(selectedDate);
     let activeChip = null;
 
-    // 앞뒤로 15일씩 총 31일치 생성하여 스크롤 가능하게 함
     for (let i = -15; i <= 15; i++) {
       const target = new Date(selectedDate);
       target.setDate(selectedDate.getDate() + i);
@@ -227,14 +226,14 @@
       if (isActive) activeChip = chip;
     }
 
-    // 선택된 날짜가 5개 칸 중 정확히 정가운데에 오도록 스크롤 조절
+    // 선택된 날짜가 리스트의 정확히 정가운데에 오도록 강제 스크롤 조정 (지연 실행 추가)
     if (activeChip) {
-      requestAnimationFrame(() => {
+      setTimeout(() => {
         const containerHeight = list.clientHeight;
         const chipTop = activeChip.offsetTop;
         const chipHeight = activeChip.offsetHeight;
         list.scrollTop = chipTop - (containerHeight / 2) + (chipHeight / 2);
-      });
+      }, 10);
     }
   }
 
