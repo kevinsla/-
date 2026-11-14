@@ -436,6 +436,15 @@
   if (nextBtn) nextBtn.addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() + 1); renderApp(); });
 
   renderApp();
+
+  // 서비스 워커 등록 (주소창에 다운로드 버튼을 띄우기 위한 필수 코드)
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('SW 등록 성공:', reg.scope))
+        .catch(err => console.log('SW 등록 실패:', err));
+    });
+  }
 </script>
 
 </body>
