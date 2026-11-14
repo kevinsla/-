@@ -4,19 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="application-name" content="모바일 지출 기록기">
+  <meta name="application-name" content="독립가계부">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="가계부">
-  <title>모바일 지출 기록기</title>
-  <link rel="manifest" href="./manifest.json">
-  <link rel="icon" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/7.png">
+  <meta name="apple-mobile-web-app-title" content="독립가계부">
+  <title>독립 지출 기록기</title>
+  <link rel="manifest" href="./expense-manifest.json">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     html, body { height: 100%; width: 100%; overflow: hidden; background-color: #ffffff; color: #1f2937; }
     .app-container { display: flex; flex-direction: column; height: 100dvh; max-width: 800px; margin: 0 auto; background-color: #ffffff; }
 
-    /* 1. 최상단 (1/4): 달력 영역 */
+    /* 1. 최상단: 달력 영역 */
     .top-calendar { flex: 0 0 25%; display: flex; flex-direction: column; justify-content: center; border-bottom: 2px solid #e5e7eb; background: #fff; padding: 4px 10px; }
     .calendar-header { position: relative; display: flex; justify-content: space-between; align-items: center; height: 24px; margin-bottom: 2px; }
     .calendar-header h2 { position: absolute; left: 50%; transform: translateX(-50%); font-size: 13px; font-weight: 700; white-space: nowrap; pointer-events: none; }
@@ -33,11 +32,10 @@
     .day-cell.today { font-weight: 800; background-color: #eff6ff; color: #2563eb; }
     .day-cell.selected { background-color: #2563eb; color: #ffffff !important; font-weight: 700; }
 
-    /* 2. 중간 (2/4): 선택 영역 (날짜 + 항목) */
+    /* 2. 중간: 선택 영역 (날짜 + 항목) */
     .middle-section { flex: 0 0 42%; display: flex; background-color: #fafafa; border-bottom: 2px solid #e5e7eb; overflow: hidden; }
     .selector-panel { display: flex; width: 100%; background-color: #ffffff; padding: 6px 8px; gap: 8px; }
     
-    /* 왼쪽 세로 날짜 선택 */
     .date-col { flex: 0 0 84px; display: flex; flex-direction: column; border-right: 1px solid #f0f0f0; padding-right: 6px; height: 100%; }
     .col-title { font-size: 11px; font-weight: 700; color: #4b5563; margin-bottom: 4px; flex-shrink: 0; }
     .vertical-date-scroll { position: relative; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; scrollbar-width: none; }
@@ -45,7 +43,6 @@
     .date-chip { height: calc((100% - 16px) / 5); min-height: 26px; display: flex; align-items: center; justify-content: center; font-size: 11px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; cursor: pointer; font-weight: 600; flex-shrink: 0; }
     .date-chip.active { background-color: #2563eb; color: #ffffff; border-color: #2563eb; }
 
-    /* 오른쪽 항목 선택 + 포켓몬 아이콘 */
     .category-col { flex: 1; display: flex; flex-direction: column; overflow-y: auto; height: 100%; }
     .category-cloud { display: flex; flex-wrap: wrap; gap: 8px 6px; align-content: flex-start; padding-top: 4px; padding-right: 4px; }
     .cat-chip { position: relative; padding: 6px 12px; font-size: 11px; border-radius: 14px; border: 1px solid transparent; cursor: pointer; font-weight: 600; }
@@ -140,21 +137,22 @@
   const defaultPokeIds = { '점심': 7, '저녁': 1, '커피': 4, '택시': 25, '쇼핑': 94, '기타': 133 };
   const randomPokePool = [7, 1, 4, 25, 94, 133, 39, 52, 54, 143, 151, 175];
   
-  let customPokeIds = JSON.parse(localStorage.getItem('my_expense_pokes')) || defaultPokeIds;
-  let customCategories = JSON.parse(localStorage.getItem('my_expense_cats')) || ['점심', '저녁', '커피', '택시', '쇼핑', '기타'];
+  // 기존 앱과 충돌하지 않도록 독립된 키값 사용
+  let customPokeIds = JSON.parse(localStorage.getItem('isolated_expense_pokes')) || defaultPokeIds;
+  let customCategories = JSON.parse(localStorage.getItem('isolated_expense_cats')) || ['점심', '저녁', '커피', '택시', '쇼핑', '기타'];
   let currentDate = new Date();
   let selectedDate = new Date();
   let selectedCategory = customCategories[0] || '점심';
-  let records = JSON.parse(localStorage.getItem('my_expense_app_v2')) || {};
-  let monthlyIncomes = JSON.parse(localStorage.getItem('my_monthly_incomes')) || {};
+  let records = JSON.parse(localStorage.getItem('isolated_expense_records')) || {};
+  let monthlyIncomes = JSON.parse(localStorage.getItem('isolated_expense_incomes')) || {};
   let isStatsMode = false;
 
-  function saveRecords() { localStorage.setItem('my_expense_app_v2', JSON.stringify(records)); }
+  function saveRecords() { localStorage.setItem('isolated_expense_records', JSON.stringify(records)); }
   function saveCategories() { 
-    localStorage.setItem('my_expense_cats', JSON.stringify(customCategories)); 
-    localStorage.setItem('my_expense_pokes', JSON.stringify(customPokeIds));
+    localStorage.setItem('isolated_expense_cats', JSON.stringify(customCategories)); 
+    localStorage.setItem('isolated_expense_pokes', JSON.stringify(customPokeIds));
   }
-  function saveIncomes() { localStorage.setItem('my_monthly_incomes', JSON.stringify(monthlyIncomes)); }
+  function saveIncomes() { localStorage.setItem('isolated_expense_incomes', JSON.stringify(monthlyIncomes)); }
 
   function formatDateKey(date) {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -441,9 +439,9 @@
   // 서비스 워커 등록
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('SW 등록 성공:', reg.scope))
-        .catch(err => console.log('SW 등록 실패:', err));
+      navigator.serviceWorker.register('./isolated-sw.js')
+        .then(reg => console.log('독립 SW 등록 성공:', reg.scope))
+        .catch(err => console.log('독립 SW 등록 실패:', err));
     });
   }
 </script>
