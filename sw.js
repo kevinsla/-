@@ -1,9 +1,14 @@
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open('expense-pwa-v1').then((cache) => {
+    caches.open('expense-pwa-v2').then((cache) => {
       return cache.addAll(['./expense.html', './manifest.json']);
     })
   );
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (e) => {
+  e.waitUntil(clients.claim());
 });
 
 self.addEventListener('fetch', (e) => {
