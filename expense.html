@@ -201,7 +201,10 @@
       if (dateKey === todayKey) cell.classList.add('today');
       if (dateKey === selectedKey) cell.classList.add('selected');
       cell.innerHTML = `<span>${d}</span>`;
-      cell.addEventListener('click', () => { selectedDate = cellDate; renderApp(); });
+      cell.addEventListener('click', () => { 
+        selectedDate = new Date(cellDate); 
+        renderApp(); 
+      });
       grid.appendChild(cell);
     }
   }
@@ -213,6 +216,7 @@
     const selectedKey = formatDateKey(selectedDate);
     let activeChip = null;
 
+    // 앞뒤로 15일씩 총 31일치 생성
     for (let i = -15; i <= 15; i++) {
       const target = new Date(selectedDate);
       target.setDate(selectedDate.getDate() + i);
@@ -221,19 +225,19 @@
       const isActive = dateKey === selectedKey;
       chip.className = 'date-chip' + (isActive ? ' active' : '');
       chip.textContent = `${target.getMonth() + 1}/${target.getDate()}`;
-      chip.addEventListener('click', () => { selectedDate = target; renderApp(); });
+      chip.addEventListener('click', () => { 
+        selectedDate = new Date(target); 
+        renderApp(); 
+      });
       list.appendChild(chip);
       if (isActive) activeChip = chip;
     }
 
-    // 선택된 날짜가 리스트의 정확히 정가운데에 오도록 강제 스크롤 조정 (지연 실행 추가)
+    // 선택된 날짜가 리스트의 정확히 정가운데에 오도록 스크롤 위치 강제 지정
     if (activeChip) {
       setTimeout(() => {
-        const containerHeight = list.clientHeight;
-        const chipTop = activeChip.offsetTop;
-        const chipHeight = activeChip.offsetHeight;
-        list.scrollTop = chipTop - (containerHeight / 2) + (chipHeight / 2);
-      }, 10);
+        list.scrollTop = activeChip.offsetTop - (list.clientHeight / 2) + (activeChip.offsetHeight / 2);
+      }, 0);
     }
   }
 
