@@ -16,7 +16,7 @@
     html, body { height: 100%; width: 100%; overflow: hidden; background-color: #ffffff; color: #1f2937; }
     .app-container { display: flex; flex-direction: column; height: 100dvh; max-width: 800px; margin: 0 auto; background-color: #ffffff; }
 
-    /* 상단 탭 전환 */
+    /* 상단 탭 전환 영역 (다시 추가됨) */
     .app-switcher { display: flex; background: #2563eb; padding: 6px; gap: 6px; flex-shrink: 0; }
     .switch-tab { flex: 1; background: rgba(255,255,255,0.2); border: none; border-radius: 4px; padding: 6px; color: #fff; font-weight: bold; font-size: 12px; cursor: pointer; text-align: center; }
     .switch-tab.active { background: #fff; color: #2563eb; }
@@ -102,7 +102,7 @@
 <body>
 
 <div class="app-container">
-  <!-- 상단 탭 전환 -->
+  <!-- 상단 탭 전환 메뉴 (복구됨) -->
   <div class="app-switcher">
     <button class="switch-tab active" onclick="switchTab('schedule')">📅 일정 관리</button>
     <button class="switch-tab" onclick="switchTab('expense')">💰 가계부 지출</button>
